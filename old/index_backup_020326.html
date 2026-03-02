@@ -1495,71 +1495,8 @@
         color: #991b1b;
       }
 
-      .inline-image-modal-status[data-type="success"] {
-        border-color: #86efac;
-        background: #f0fdf4;
-        color: #166534;
-      }
-
       .inline-image-modal-footer {
         padding: 0.7rem 1rem 0.9rem;
-        border-top: 1px solid #dbe4f7;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-      }
-
-      .publish-modal-dialog {
-        width: min(760px, 94vw);
-        max-height: 88vh;
-        height: min(88vh, calc(100vh - 10vh));
-        grid-template-rows: auto minmax(0, 1fr) auto;
-      }
-
-      .publish-modal-body {
-        padding: 0.85rem 1rem;
-        display: grid;
-        gap: 0.7rem;
-        min-height: 0;
-        overflow: auto;
-      }
-
-      .publish-form-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.6rem;
-      }
-
-      .publish-result-card {
-        border: 1px solid #dbe4f7;
-        border-radius: 11px;
-        padding: 0.62rem 0.68rem;
-        background: #f8fbff;
-        display: grid;
-        gap: 0.4rem;
-      }
-
-      .publish-result-label {
-        margin: 0;
-        font-size: 0.78rem;
-        color: var(--muted);
-      }
-
-      .publish-result-card a {
-        color: #1d4ed8;
-        font-weight: 700;
-        text-decoration: none;
-        word-break: break-all;
-      }
-
-      .publish-result-actions {
-        display: flex;
-        gap: 0.45rem;
-        flex-wrap: wrap;
-      }
-
-      .publish-modal-footer {
-        padding: 0.8rem 1rem 1rem;
         border-top: 1px solid #dbe4f7;
         display: flex;
         justify-content: flex-end;
@@ -1596,10 +1533,6 @@
         }
 
         .inline-image-modal-body {
-          grid-template-columns: 1fr;
-        }
-
-        .publish-form-grid {
           grid-template-columns: 1fr;
         }
 
@@ -2567,7 +2500,6 @@
           <button id="viewMobileBtn" class="view-btn" type="button" aria-pressed="false">Mobile</button>
         </div>
         <button id="inspectCodeBtn" class="btn neutral" type="button">Inspección de código</button>
-        <button id="publishBtn" class="btn neutral" type="button">Publicar web</button>
         <button id="downloadBtn" class="btn primary" type="button">Descargar Web</button>
       </div>
     </header>
@@ -2832,42 +2764,6 @@
         <div class="code-inspect-footer">
           <button id="codeInspectCopyBtn" class="btn secondary" type="button">Copiar HTML</button>
           <button id="codeInspectDownloadBtn" class="btn primary" type="button">Descargar web</button>
-        </div>
-      </article>
-    </div>
-
-    <div id="publishModal" class="layout-modal" hidden>
-      <div class="layout-modal-backdrop" data-close-publish-modal></div>
-      <article class="layout-modal-dialog publish-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle">
-        <button id="publishModalCloseBtn" class="layout-modal-close" type="button" aria-label="Cerrar">×</button>
-        <div class="component-modal-head">
-          <p id="publishModalTitle">Publicar web en Vercel</p>
-          <p class="modal-edit-hint">Se desplegará el HTML actual con imágenes embebidas y recibirás una URL pública.</p>
-        </div>
-        <div class="publish-modal-body">
-          <label for="vercelProjectInput">
-            Nombre del proyecto
-            <input id="vercelProjectInput" type="text" maxlength="100" placeholder="mi-landing" />
-          </label>
-          <label for="publishEndpointInput">
-            Endpoint de publicación
-            <input id="publishEndpointInput" type="text" maxlength="260" placeholder="https://tu-editor.vercel.app/api/publish" />
-          </label>
-          <p class="note">Si abres el editor en local (file://), pega aquí la URL pública de tu endpoint.</p>
-          <p class="note">Se publicará con formato <strong>proyecto-nombre</strong>. Mismo nombre actualiza la misma URL; un nombre nuevo crea otra URL.</p>
-          <p id="publishModalStatus" class="inline-image-modal-status" hidden></p>
-          <div id="publishResultCard" class="publish-result-card" hidden>
-            <p class="publish-result-label">URL pública</p>
-            <a id="publishResultLink" href="#" target="_blank" rel="noopener noreferrer"></a>
-            <div class="publish-result-actions">
-              <button id="publishCopyUrlBtn" class="btn secondary" type="button">Copiar URL</button>
-              <a id="publishOpenUrlBtn" class="btn neutral" href="#" target="_blank" rel="noopener noreferrer">Abrir</a>
-            </div>
-          </div>
-        </div>
-        <div class="publish-modal-footer">
-          <button id="publishCancelBtn" class="btn secondary" type="button">Cancelar</button>
-          <button id="publishSubmitBtn" class="btn primary" type="button">Publicar ahora</button>
         </div>
       </article>
     </div>
@@ -3820,7 +3716,6 @@
         stickyPreviewBtn: document.getElementById("stickyPreviewBtn"),
         sectionPicker: document.getElementById("sectionPicker"),
         contentForms: document.getElementById("contentForms"),
-        publishBtn: document.getElementById("publishBtn"),
         downloadBtn: document.getElementById("downloadBtn"),
         previewFrame: document.getElementById("previewFrame"),
         status: document.getElementById("status"),
@@ -3871,18 +3766,7 @@
         codeInspectCloseBtn: document.getElementById("codeInspectCloseBtn"),
         codeInspectOutput: document.getElementById("codeInspectOutput"),
         codeInspectCopyBtn: document.getElementById("codeInspectCopyBtn"),
-        codeInspectDownloadBtn: document.getElementById("codeInspectDownloadBtn"),
-        publishModal: document.getElementById("publishModal"),
-        publishModalCloseBtn: document.getElementById("publishModalCloseBtn"),
-        publishCancelBtn: document.getElementById("publishCancelBtn"),
-        publishSubmitBtn: document.getElementById("publishSubmitBtn"),
-        publishCopyUrlBtn: document.getElementById("publishCopyUrlBtn"),
-        publishOpenUrlBtn: document.getElementById("publishOpenUrlBtn"),
-        publishModalStatus: document.getElementById("publishModalStatus"),
-        publishResultCard: document.getElementById("publishResultCard"),
-        publishResultLink: document.getElementById("publishResultLink"),
-        vercelProjectInput: document.getElementById("vercelProjectInput"),
-        publishEndpointInput: document.getElementById("publishEndpointInput")
+        codeInspectDownloadBtn: document.getElementById("codeInspectDownloadBtn")
       };
 
       let previewObserver = null;
@@ -3898,8 +3782,6 @@
       let logoResizeRequestId = 0;
       let statusHideTimer = null;
       const openAiApiKeyStorageKey = "landing_openai_api_key";
-      const vercelProjectNameStorageKey = "landing_vercel_project_name";
-      const publishEndpointStorageKey = "landing_publish_endpoint_url";
       const headerFooterModalSectionKey = "__header_footer__";
       let draggedSectionKey = "";
       let sectionDragDropped = false;
@@ -3907,7 +3789,6 @@
       let inlineImageEditBindingKey = "";
       let inlineImageDraftSource = "";
       let inlineImageEditSessionId = 0;
-      let publishInFlight = false;
 
       function clone(obj) {
         return JSON.parse(JSON.stringify(obj));
@@ -3948,27 +3829,6 @@
             window.localStorage.removeItem(openAiApiKeyStorageKey);
           } else {
             window.localStorage.setItem(openAiApiKeyStorageKey, key);
-          }
-        } catch (error) {
-          // noop
-        }
-      }
-
-      function getStoredValue(storageKey) {
-        try {
-          return String(window.localStorage.getItem(storageKey) || "").trim();
-        } catch (error) {
-          return "";
-        }
-      }
-
-      function setStoredValue(storageKey, value) {
-        const normalized = String(value || "").trim();
-        try {
-          if (!normalized) {
-            window.localStorage.removeItem(storageKey);
-          } else {
-            window.localStorage.setItem(storageKey, normalized);
           }
         } catch (error) {
           // noop
@@ -4086,7 +3946,7 @@
 
       function closeHeroImageModal() {
         dom.heroImageModal.hidden = true;
-        if (dom.componentModal.hidden && dom.sectionModal.hidden && dom.layoutModal.hidden && dom.inlineImageModal.hidden && dom.publishModal.hidden) {
+        if (dom.componentModal.hidden && dom.sectionModal.hidden && dom.layoutModal.hidden && dom.inlineImageModal.hidden) {
           document.body.style.overflow = "";
         }
         state.heroImageGen.sectionKey = "";
@@ -4216,8 +4076,7 @@
           dom.sectionModal.hidden &&
           dom.componentModal.hidden &&
           dom.layoutModal.hidden &&
-          dom.codeInspectModal.hidden &&
-          dom.publishModal.hidden
+          dom.codeInspectModal.hidden
         ) {
           document.body.style.overflow = "";
         }
@@ -6597,8 +6456,7 @@
           dom.sectionModal.hidden &&
           dom.componentModal.hidden &&
           dom.layoutModal.hidden &&
-          dom.inlineImageModal.hidden &&
-          dom.publishModal.hidden
+          dom.inlineImageModal.hidden
         ) {
           document.body.style.overflow = "";
         }
@@ -6624,266 +6482,6 @@
           setStatus("HTML copiado al portapapeles.", "success");
         } catch (error) {
           setStatus("No se pudo copiar el HTML.", "error");
-        }
-      }
-
-      function sanitizeVercelSlug(value) {
-        const normalized = String(value || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .replace(/[^a-z0-9-]+/g, "-")
-          .replace(/-{2,}/g, "-")
-          .replace(/^-+|-+$/g, "");
-        return normalized.slice(0, 88);
-      }
-
-      function stripProjectPrefix(value) {
-        return String(value || "").trim().replace(/^proyecto-+/i, "");
-      }
-
-      function buildPrefixedProjectName(value) {
-        const slug = sanitizeVercelSlug(stripProjectPrefix(value));
-        if (!slug) return "";
-        return `proyecto-${slug}`;
-      }
-
-      function suggestedVercelProjectInput() {
-        const siteTitle = String(state.siteConfig.title || "").trim() || "landing";
-        const basedOnTitle = sanitizeVercelSlug(siteTitle);
-        if (basedOnTitle) return basedOnTitle;
-        return `landing-${Date.now().toString(36)}`;
-      }
-
-      function setPublishModalStatus(message, type = "") {
-        if (!dom.publishModalStatus) return;
-        const text = String(message || "").trim();
-        if (!text) {
-          dom.publishModalStatus.hidden = true;
-          dom.publishModalStatus.textContent = "";
-          dom.publishModalStatus.dataset.type = "";
-          return;
-        }
-        dom.publishModalStatus.hidden = false;
-        dom.publishModalStatus.textContent = text;
-        dom.publishModalStatus.dataset.type = type || "";
-      }
-
-      function setPublishResultUrl(url) {
-        const value = String(url || "").trim();
-        if (!dom.publishResultCard || !dom.publishResultLink || !dom.publishOpenUrlBtn || !dom.publishCopyUrlBtn) return;
-        if (!value) {
-          dom.publishResultCard.hidden = true;
-          dom.publishResultLink.textContent = "";
-          dom.publishResultLink.href = "#";
-          dom.publishOpenUrlBtn.href = "#";
-          dom.publishCopyUrlBtn.hidden = true;
-          return;
-        }
-        dom.publishResultCard.hidden = false;
-        dom.publishResultLink.textContent = value;
-        dom.publishResultLink.href = value;
-        dom.publishOpenUrlBtn.href = value;
-        dom.publishCopyUrlBtn.hidden = false;
-      }
-
-      function setPublishLoadingState(isLoading) {
-        publishInFlight = Boolean(isLoading);
-        const disableInputs = publishInFlight;
-        if (dom.vercelProjectInput) dom.vercelProjectInput.disabled = disableInputs;
-        if (dom.publishEndpointInput) dom.publishEndpointInput.disabled = disableInputs;
-        if (dom.publishCancelBtn) dom.publishCancelBtn.disabled = disableInputs;
-        if (dom.publishModalCloseBtn) dom.publishModalCloseBtn.disabled = disableInputs;
-        if (dom.publishSubmitBtn) {
-          dom.publishSubmitBtn.disabled = disableInputs;
-          dom.publishSubmitBtn.textContent = disableInputs ? "Publicando..." : "Publicar ahora";
-        }
-      }
-
-      function openPublishModal() {
-        if (!dom.publishModal) return;
-        if (dom.vercelProjectInput) {
-          const storedProject = getStoredValue(vercelProjectNameStorageKey);
-          dom.vercelProjectInput.value = stripProjectPrefix(storedProject) || suggestedVercelProjectInput();
-        }
-        if (dom.publishEndpointInput) {
-          dom.publishEndpointInput.value = suggestedPublishApiUrl();
-        }
-        setPublishModalStatus("");
-        setPublishResultUrl("");
-        setPublishLoadingState(false);
-        dom.publishModal.hidden = false;
-        document.body.style.overflow = "hidden";
-      }
-
-      function closePublishModal() {
-        if (!dom.publishModal || publishInFlight) return;
-        dom.publishModal.hidden = true;
-        setPublishModalStatus("");
-        if (
-          dom.heroImageModal.hidden &&
-          dom.sectionModal.hidden &&
-          dom.componentModal.hidden &&
-          dom.layoutModal.hidden &&
-          dom.inlineImageModal.hidden &&
-          dom.codeInspectModal.hidden
-        ) {
-          document.body.style.overflow = "";
-        }
-      }
-
-      function normalizePublishApiUrl(value) {
-        const raw = String(value || "").trim();
-        if (!raw) return "";
-        if (/^https?:\/\//i.test(raw)) return raw;
-        if (raw.startsWith("/")) return raw;
-        if (/^api\//i.test(raw)) return `/${raw}`;
-        if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(raw)) return `https://${raw}`;
-        return raw;
-      }
-
-      function suggestedPublishApiUrl() {
-        const explicit = normalizePublishApiUrl(window.__PUBLISH_ENDPOINT__);
-        if (explicit) return explicit;
-        const stored = normalizePublishApiUrl(getStoredValue(publishEndpointStorageKey));
-        if (stored) return stored;
-        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
-          return `${window.location.origin}/api/publish`;
-        }
-        return "";
-      }
-
-      function getPublishApiUrl() {
-        const inputUrl = normalizePublishApiUrl(dom.publishEndpointInput ? dom.publishEndpointInput.value : "");
-        if (inputUrl) {
-          setStoredValue(publishEndpointStorageKey, inputUrl);
-          if (dom.publishEndpointInput) dom.publishEndpointInput.value = inputUrl;
-          return inputUrl;
-        }
-        const fallback = suggestedPublishApiUrl();
-        if (dom.publishEndpointInput && fallback) dom.publishEndpointInput.value = fallback;
-        return fallback;
-      }
-
-      function normalizePublishFetchError(error, apiUrl) {
-        const raw = String((error && error.message) || "").trim();
-        const isNetworkLike =
-          error instanceof TypeError ||
-          /failed to fetch|load failed|networkerror/i.test(raw);
-        if (!isNetworkLike) return raw || "No se pudo publicar en el servidor.";
-
-        if (!apiUrl) {
-          return "No hay endpoint de publicación disponible. Abre el editor desde un dominio HTTP(S) o configura window.__PUBLISH_ENDPOINT__.";
-        }
-
-        if (window.location.protocol === "file:") {
-          return `No se pudo conectar con ${apiUrl}. Estás abriendo el editor como archivo local (file://); publica el editor en Vercel o ejecútalo con servidor para usar /api/publish.`;
-        }
-
-        return `No se pudo conectar con ${apiUrl}. Verifica que la función /api/publish esté desplegada y que no haya bloqueo CORS/red.`;
-      }
-
-      async function parseJsonSafely(response) {
-        try {
-          return await response.json();
-        } catch (error) {
-          return null;
-        }
-      }
-
-      async function copyText(text) {
-        const value = String(text || "");
-        if (!value) return;
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(value);
-          return;
-        }
-        const helper = document.createElement("textarea");
-        helper.value = value;
-        helper.setAttribute("readonly", "true");
-        helper.style.position = "fixed";
-        helper.style.opacity = "0";
-        document.body.appendChild(helper);
-        helper.select();
-        document.execCommand("copy");
-        helper.remove();
-      }
-
-      async function publishToVercel() {
-        if (publishInFlight) return;
-        const projectInputValue = String(dom.vercelProjectInput ? dom.vercelProjectInput.value : "").trim();
-        const projectName = buildPrefixedProjectName(projectInputValue);
-
-        if (!projectName) {
-          setPublishModalStatus("Introduce un nombre de proyecto válido.", "error");
-          return;
-        }
-        if (dom.vercelProjectInput) dom.vercelProjectInput.value = stripProjectPrefix(projectName);
-        setStoredValue(vercelProjectNameStorageKey, projectName);
-
-        setPublishResultUrl("");
-        setPublishLoadingState(true);
-        setPublishModalStatus("Preparando HTML y embebiendo imágenes...", "");
-
-        try {
-          persistInlineTextChangesFromFrame(dom.previewFrame, { refreshPreview: false });
-          if (!state.selectedLayout) {
-            throw new Error("Debes seleccionar un layout antes de publicar.");
-          }
-          if (state.selectedSections.length === 0) {
-            throw new Error("Añade al menos una sección antes de publicar.");
-          }
-
-          const { embedded } = await resolveRequestedImages();
-          const html = buildLandingHtml(embedded);
-          if (dom.previewFrame) {
-            dom.previewFrame.srcdoc = html;
-          }
-
-          setPublishModalStatus("Solicitando despliegue al servidor...", "");
-          const publishApiUrl = getPublishApiUrl();
-          if (!publishApiUrl) {
-            throw new Error(normalizePublishFetchError(new TypeError("Load failed"), publishApiUrl));
-          }
-          const publishApiKey = String(window.__PUBLISH_API_KEY__ || "").trim();
-          const requestHeaders = {
-            "Content-Type": "application/json"
-          };
-          if (publishApiKey) {
-            requestHeaders["x-publish-key"] = publishApiKey;
-          }
-          let response;
-          try {
-            response = await fetch(publishApiUrl, {
-              method: "POST",
-              headers: requestHeaders,
-              body: JSON.stringify({
-                projectName,
-                html
-              })
-            });
-          } catch (fetchError) {
-            throw new Error(normalizePublishFetchError(fetchError, publishApiUrl));
-          }
-          const payload = await parseJsonSafely(response);
-          if (!response.ok) {
-            const apiError = payload && typeof payload === "object" ? String(payload.error || payload.message || "").trim() : "";
-            throw new Error(apiError || `Error publicando (${response.status}).`);
-          }
-
-          const publicUrl = payload && typeof payload === "object" ? String(payload.url || "").trim() : "";
-          if (!publicUrl) {
-            throw new Error("El servidor no devolvió una URL pública.");
-          }
-          setPublishResultUrl(publicUrl);
-          setPublishModalStatus("Web publicada correctamente.", "success");
-          setStatus(`Publicada en ${publicUrl}`, "success");
-        } catch (error) {
-          const message = error && error.message ? error.message : "No se pudo publicar en el servidor.";
-          setPublishModalStatus(message, "error");
-          setStatus(message, "error");
-        } finally {
-          setPublishLoadingState(false);
         }
       }
 
@@ -10137,14 +9735,6 @@
         });
       }
 
-      if (dom.publishModal) {
-        dom.publishModal.addEventListener("click", (event) => {
-          if (event.target.closest("[data-close-publish-modal]")) {
-            closePublishModal();
-          }
-        });
-      }
-
       dom.layoutModalCloseBtn.addEventListener("click", () => {
         closeLayoutModal();
       });
@@ -10187,18 +9777,6 @@
         });
       }
 
-      if (dom.publishModalCloseBtn) {
-        dom.publishModalCloseBtn.addEventListener("click", () => {
-          closePublishModal();
-        });
-      }
-
-      if (dom.publishCancelBtn) {
-        dom.publishCancelBtn.addEventListener("click", () => {
-          closePublishModal();
-        });
-      }
-
       if (dom.codeInspectCopyBtn) {
         dom.codeInspectCopyBtn.addEventListener("click", async () => {
           await copyCodeInspectOutput();
@@ -10208,25 +9786,6 @@
       if (dom.codeInspectDownloadBtn) {
         dom.codeInspectDownloadBtn.addEventListener("click", async () => {
           await generateAndRender({ download: true });
-        });
-      }
-
-      if (dom.publishSubmitBtn) {
-        dom.publishSubmitBtn.addEventListener("click", async () => {
-          await publishToVercel();
-        });
-      }
-
-      if (dom.publishCopyUrlBtn) {
-        dom.publishCopyUrlBtn.addEventListener("click", async () => {
-          const url = dom.publishResultLink ? String(dom.publishResultLink.textContent || "").trim() : "";
-          if (!url) return;
-          try {
-            await copyText(url);
-            setStatus("URL pública copiada al portapapeles.", "success");
-          } catch (error) {
-            setStatus("No se pudo copiar la URL publicada.", "error");
-          }
         });
       }
 
@@ -10316,12 +9875,6 @@
         });
       }
 
-      if (dom.publishBtn) {
-        dom.publishBtn.addEventListener("click", () => {
-          openPublishModal();
-        });
-      }
-
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         if (dom.inlineImageModal && !dom.inlineImageModal.hidden) {
@@ -10330,10 +9883,6 @@
         }
         if (dom.codeInspectModal && !dom.codeInspectModal.hidden) {
           closeCodeInspectModal();
-          return;
-        }
-        if (dom.publishModal && !dom.publishModal.hidden) {
-          closePublishModal();
           return;
         }
         if (!dom.heroImageModal.hidden) {

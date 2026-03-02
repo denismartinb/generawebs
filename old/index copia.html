@@ -1,0 +1,2908 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generador de Landings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f2f6fb;
+        --surface: #ffffff;
+        --text: #141827;
+        --muted: #586176;
+        --primary: #2454ff;
+        --border: #e1e8f5;
+        --accent: #11b8a4;
+        --ok-bg: #f0fdf4;
+        --ok-text: #166534;
+        --ok-border: #86efac;
+        --error-bg: #fef2f2;
+        --error-text: #991b1b;
+        --error-border: #fecaca;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: "Manrope", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 10% 0%, #dce9ff 0%, transparent 44%),
+          radial-gradient(circle at 86% 12%, #d8f7f2 0%, transparent 32%),
+          radial-gradient(circle at 72% 82%, #ffe9d6 0%, transparent 28%),
+          var(--bg);
+      }
+
+      .app {
+        width: min(1360px, 92vw);
+        margin: 1.6rem auto 2.5rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .hero {
+        border-radius: 28px;
+        padding: clamp(1.5rem, 3vw, 2.3rem);
+        color: #f8fbff;
+        background:
+          radial-gradient(circle at 78% 24%, rgba(17, 184, 164, 0.45), transparent 38%),
+          linear-gradient(130deg, #0d1333 0%, #1b2250 45%, #27285f 100%);
+        box-shadow: 0 20px 50px rgba(13, 19, 50, 0.25);
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(1.85rem, 4vw, 2.95rem);
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0.7rem 0 0;
+        max-width: 78ch;
+        line-height: 1.5;
+        color: #d6e4ff;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 1rem;
+        box-shadow: 0 18px 36px rgba(19, 32, 77, 0.08);
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+      }
+
+      .panel .intro {
+        margin: 0.45rem 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .layout-track {
+        margin-top: 0.9rem;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(260px, 290px);
+        gap: 0.95rem;
+        overflow-x: auto;
+        padding: 0.1rem 0 0.7rem;
+        scroll-snap-type: x proximity;
+        justify-content: start;
+        align-items: stretch;
+      }
+
+      .layout-card {
+        border: 1px solid #dbe5f7;
+        border-radius: 18px;
+        padding: 0.72rem;
+        background: #fff;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 0.64rem;
+        min-height: 272px;
+        scroll-snap-align: start;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .layout-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(36, 84, 255, 0.14);
+      }
+
+      .layout-card.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(36, 84, 255, 0.2);
+      }
+
+      .layout-shot {
+        border: 1px solid #d6e0f3;
+        border-radius: 13px;
+        overflow: hidden;
+        background: #f8fbff;
+      }
+
+      .layout-thumb-btn {
+        display: block;
+        width: 100%;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        position: relative;
+      }
+
+      .layout-thumb-topbar {
+        height: 22px;
+        border-bottom: 1px solid #dde6f5;
+        background: linear-gradient(180deg, #f8fbff, #eef3fb);
+        display: flex;
+        align-items: center;
+        gap: 0.33rem;
+        padding: 0 0.5rem;
+      }
+
+      .layout-thumb-topbar span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      .layout-thumb-topbar span:nth-child(1) { background: #ff6b6b; }
+      .layout-thumb-topbar span:nth-child(2) { background: #f59f00; }
+      .layout-thumb-topbar span:nth-child(3) { background: #40c057; }
+
+      .layout-thumb {
+        width: 100%;
+        height: 156px;
+        object-fit: cover;
+        background: #eef2f7;
+        display: block;
+      }
+
+      .layout-zoom-hint {
+        position: absolute;
+        right: 0.55rem;
+        bottom: 0.55rem;
+        background: rgba(9, 19, 49, 0.78);
+        color: #fff;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        padding: 0.22rem 0.5rem;
+        letter-spacing: 0.01em;
+      }
+
+      .layout-meta {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 0.6rem;
+        min-height: 82px;
+      }
+
+      .layout-copy {
+        display: grid;
+        align-content: start;
+        gap: 0.2rem;
+      }
+
+      .layout-meta strong {
+        display: block;
+        font-size: 0.96rem;
+        font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+      }
+
+      .layout-meta span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.28;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        font: inherit;
+        padding: 0.56rem 0.84rem;
+        font-weight: 600;
+        transition: transform 140ms ease, box-shadow 140ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(36, 84, 255, 0.24);
+      }
+
+      .btn.secondary {
+        border: 1px solid #d7e2f5;
+        background: #fff;
+        color: #27314a;
+      }
+
+      .btn.neutral {
+        border: 1px solid #d8e3f7;
+        background: #f7faff;
+        color: #30415d;
+      }
+
+      .btn:focus,
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 3px solid #bfdbfe;
+        outline-offset: 1px;
+      }
+
+      label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      select,
+      input,
+      textarea {
+        width: 100%;
+        margin-top: 0.35rem;
+        border: 1px solid #d7cdc0;
+        border-radius: 10px;
+        padding: 0.58rem 0.64rem;
+        background: #fff;
+        color: #1f1b16;
+        font: inherit;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1.08fr 1fr;
+        gap: 1rem;
+      }
+
+      .section-picker {
+        margin-top: 0.9rem;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.7rem;
+      }
+
+      .section-list {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .section-item {
+        border: 1px solid #e7ddd0;
+        border-radius: 12px;
+        padding: 0.65rem;
+      }
+
+      .section-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+
+      .section-top strong {
+        display: block;
+      }
+
+      .section-top p {
+        margin: 0.2rem 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .section-actions {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+
+      .content-forms {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .config-grid {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .tag {
+        border: 1px solid #ddd2c2;
+        background: #faf6ef;
+        color: #4b4339;
+        border-radius: 999px;
+        padding: 0.26rem 0.62rem;
+        font-size: 0.8rem;
+      }
+
+      .preview-box {
+        border: 1px solid #e7ddcf;
+        background: #fffdf9;
+        border-radius: 12px;
+        padding: 0.65rem;
+      }
+
+      .preview-box h3 {
+        margin: 0 0 0.45rem;
+        font-size: 0.93rem;
+      }
+
+      .preview-box ul {
+        margin: 0;
+        padding-left: 1.1rem;
+        display: grid;
+        gap: 0.28rem;
+      }
+
+      .content-card {
+        border: 1px solid #eadfce;
+        border-radius: 12px;
+        background: #fffdf9;
+        padding: 0.8rem;
+      }
+
+      .content-card h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .content-card p {
+        margin: 0.35rem 0 0.7rem;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.62rem;
+      }
+
+      .field-grid .full {
+        grid-column: 1 / -1;
+      }
+
+      .field-label {
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+
+      .text-style-tools {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.45rem;
+      }
+
+      .style-btn {
+        border: 1px solid #cdd9ef;
+        background: #f8fbff;
+        color: #223252;
+        border-radius: 9px;
+        min-width: 34px;
+        height: 32px;
+        padding: 0 0.5rem;
+        display: inline-grid;
+        place-items: center;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      .style-btn.active {
+        border-color: var(--primary);
+        background: #e9efff;
+        color: #1736a8;
+      }
+
+      .style-btn:focus {
+        outline: 3px solid #bfdbfe;
+        outline-offset: 1px;
+      }
+
+      .style-btn[data-style-toggle="underline"] {
+        text-decoration: underline;
+      }
+
+      .font-picker {
+        min-width: min(280px, 100%);
+        width: auto;
+        margin-top: 0;
+      }
+
+      .rich-input {
+        margin-top: 0;
+      }
+
+      .status {
+        margin-top: 0.8rem;
+        border: 1px solid #dfd8cb;
+        border-radius: 11px;
+        padding: 0.66rem;
+        background: #fffcf7;
+        color: #3d352c;
+        font-size: 0.9rem;
+      }
+
+      .status.success {
+        border-color: var(--ok-border);
+        background: var(--ok-bg);
+        color: var(--ok-text);
+      }
+
+      .status.error {
+        border-color: var(--error-border);
+        background: var(--error-bg);
+        color: var(--error-text);
+      }
+
+      .actions-row {
+        margin-top: 0.8rem;
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      .preview {
+        margin-top: 0.8rem;
+        border: 1px solid #ddd2c2;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        min-height: 72vh;
+      }
+
+      .preview iframe {
+        width: 100%;
+        height: 75vh;
+        min-height: 680px;
+        border: 0;
+        display: block;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+
+      .layout-modal[hidden] {
+        display: none;
+      }
+
+      .layout-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1500;
+      }
+
+      .layout-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(14, 19, 40, 0.64);
+        backdrop-filter: blur(6px);
+      }
+
+      .layout-modal-dialog {
+        position: relative;
+        width: min(980px, 94vw);
+        max-height: 92vh;
+        margin: 4vh auto;
+        background: #fff;
+        border: 1px solid #dbe4f7;
+        border-radius: 18px;
+        box-shadow: 0 40px 80px rgba(9, 14, 36, 0.35);
+        overflow: hidden;
+        display: grid;
+      }
+
+      .layout-modal-close {
+        position: absolute;
+        top: 0.65rem;
+        right: 0.65rem;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #d6e1f6;
+        background: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+      }
+
+      .layout-modal-image {
+        width: 100%;
+        max-height: 72vh;
+        object-fit: cover;
+        display: block;
+        background: #ecf2fc;
+      }
+
+      .layout-modal-footer {
+        padding: 0.9rem 1rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.7rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .layout-modal-footer p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 1040px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .layout-track {
+          grid-auto-columns: minmax(250px, 88%);
+        }
+
+        .section-picker,
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-top {
+          flex-direction: column;
+        }
+
+        .layout-modal-dialog {
+          width: min(980px, 96vw);
+          margin-top: 2vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero" aria-labelledby="title-app">
+        <h1 id="title-app">Generador de landings (1 solo index.html)</h1>
+        <p>
+          Elige un layout, selecciona tus secciones y completa el contenido. El sistema valida imágenes,
+          incrusta recursos solicitados y genera un <code>index.html</code> listo para publicar.
+        </p>
+      </section>
+
+      <section class="panel" aria-labelledby="layout-title">
+        <h2 id="layout-title">1) Selecciona un layout</h2>
+        <p class="intro">Carrusel con 5 estilos visuales premium. Haz click en la miniatura para abrir una vista ampliada.</p>
+        <div id="layoutTrack" class="layout-track" role="list" aria-label="Layouts disponibles"></div>
+      </section>
+
+      <section class="split">
+        <section class="panel" aria-labelledby="sections-title">
+          <h2 id="sections-title">2) Selecciona y ordena secciones</h2>
+          <p class="intro">Puedes añadir de 1 a 10 secciones, sin repetir tipo.</p>
+          <div class="section-picker">
+            <label for="sectionSelect">
+              Tipo de sección
+              <select id="sectionSelect" aria-label="Selector de secciones"></select>
+            </label>
+            <button id="addSectionBtn" class="btn primary" type="button">Añadir</button>
+          </div>
+          <div id="sectionList" class="section-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="header-footer-title">
+          <h2 id="header-footer-title">3) Cabecera y pie de página</h2>
+          <p class="intro">
+            Configura título/logo. La cabecera mostrará las secciones elegidas y el pie se autogenera según el contenido.
+          </p>
+          <div class="config-grid">
+            <label for="siteTitleInput">
+              Título del sitio
+              <div id="siteTitleStyleTools" class="text-style-tools"></div>
+              <input id="siteTitleInput" class="rich-input" type="text" maxlength="90" value="Mi Sitio" />
+            </label>
+            <label for="siteLogoUrlInput">
+              Logo (URL de imagen)
+              <input id="siteLogoUrlInput" type="url" placeholder="https://..." />
+            </label>
+            <label for="siteLogoAltInput">
+              Texto alternativo del logo
+              <div id="siteLogoAltStyleTools" class="text-style-tools"></div>
+              <input id="siteLogoAltInput" class="rich-input" type="text" maxlength="120" value="Logo del sitio" />
+            </label>
+            <div class="preview-box">
+              <h3>Navegación en cabecera (secciones seleccionadas)</h3>
+              <div id="selectedNavPreview" class="tag-list"></div>
+            </div>
+            <div class="preview-box">
+              <h3>Pie autogenerado (editable)</h3>
+              <p class="note">Se genera automáticamente según el contenido, pero puedes editarlo.</p>
+              <label for="footerEditorInput">
+                Texto del pie (una línea por bloque)
+                <div id="footerEditorStyleTools" class="text-style-tools"></div>
+                <textarea id="footerEditorInput" class="rich-input" rows="6"></textarea>
+              </label>
+              <div class="actions-row" style="margin-top: 0.55rem;">
+                <button id="regenerateFooterBtn" class="btn neutral" type="button">Regenerar pie</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel" aria-labelledby="content-title">
+        <h2 id="content-title">4) Contenido personalizado por sección</h2>
+        <p class="intro">Este bloque aparece y cambia en función de las secciones que vayas añadiendo.</p>
+          <div id="contentForms" class="content-forms"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="export-title">
+        <h2 id="export-title">5) Genera el index final</h2>
+        <p class="intro">La vista previa se actualiza en tiempo real. Al generar se validan las imágenes remotas.</p>
+        <div class="actions-row">
+          <button id="downloadBtn" class="btn primary" type="button">Generar y descargar index.html</button>
+        </div>
+        <p class="note">
+          Si una imagen no permite CORS o devuelve error HTTP, se detiene la exportación y se indica el campo exacto.
+        </p>
+        <div id="status" class="status" role="status" aria-live="polite">Listo para configurar.</div>
+        <div class="preview" aria-label="Vista previa de la landing generada">
+          <iframe id="previewFrame" title="Preview landing"></iframe>
+        </div>
+      </section>
+    </main>
+
+    <div id="layoutModal" class="layout-modal" hidden>
+      <div class="layout-modal-backdrop" data-close-layout-modal></div>
+      <article class="layout-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="layoutModalTitle">
+        <button id="layoutModalCloseBtn" class="layout-modal-close" type="button" aria-label="Cerrar">×</button>
+        <img id="layoutModalImage" class="layout-modal-image" alt="Vista previa del layout" />
+        <div class="layout-modal-footer">
+          <p id="layoutModalTitle"></p>
+          <button id="layoutModalSelectBtn" class="btn primary" type="button">Seleccionar plantilla</button>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      const layouts = [
+        {
+          id: "atelier-premium",
+          name: "Calma Editorial",
+          sector: "Marca personal / lujo sereno",
+          mood: "Calma",
+          thumb: "assets/layouts/atelier-premium/thumbnail.svg",
+          preview: "assets/layouts/atelier-premium/preview.svg",
+          theme: {
+            bg: "#f6f4f1",
+            surface: "#ffffff",
+            text: "#202020",
+            muted: "#626066",
+            primary: "#8a6a4b",
+            accent: "#2f3d54",
+            fontHead: "\"Fraunces\", Georgia, serif",
+            fontBody: "\"Manrope\", \"Segoe UI\", sans-serif"
+          }
+        },
+        {
+          id: "clinica-serena",
+          name: "Salud Serena",
+          sector: "Clínica / bienestar",
+          mood: "Salud",
+          thumb: "assets/layouts/clinica-serena/thumbnail.svg",
+          preview: "assets/layouts/clinica-serena/preview.svg",
+          theme: {
+            bg: "#edf8f7",
+            surface: "#ffffff",
+            text: "#102a2a",
+            muted: "#4e6462",
+            primary: "#0f766e",
+            accent: "#0f4c81",
+            fontHead: "\"Fraunces\", Georgia, serif",
+            fontBody: "\"Manrope\", \"Segoe UI\", sans-serif"
+          }
+        },
+        {
+          id: "legal-noble",
+          name: "Business Noble",
+          sector: "Negocios / despacho / consultoría",
+          mood: "Negocios",
+          thumb: "assets/layouts/legal-noble/thumbnail.svg",
+          preview: "assets/layouts/legal-noble/preview.svg",
+          theme: {
+            bg: "#f7f5f0",
+            surface: "#ffffff",
+            text: "#1f2230",
+            muted: "#5f6370",
+            primary: "#1f3c88",
+            accent: "#6f8cd6",
+            fontHead: "\"Plus Jakarta Sans\", \"Manrope\", sans-serif",
+            fontBody: "\"Manrope\", \"Segoe UI\", sans-serif"
+          }
+        },
+        {
+          id: "bistro-urbano",
+          name: "Gastro Contrast",
+          sector: "Restauración / lifestyle",
+          mood: "Vibrante",
+          thumb: "assets/layouts/bistro-urbano/thumbnail.svg",
+          preview: "assets/layouts/bistro-urbano/preview.svg",
+          theme: {
+            bg: "#121212",
+            surface: "#1f1f1f",
+            text: "#f6f0e1",
+            muted: "#d0c4ae",
+            primary: "#f59e0b",
+            accent: "#facc15",
+            fontHead: "\"Fraunces\", Georgia, serif",
+            fontBody: "\"Manrope\", \"Segoe UI\", sans-serif"
+          }
+        },
+        {
+          id: "tech-flow",
+          name: "Flow Neon",
+          sector: "SaaS / producto digital",
+          mood: "Vibrante",
+          thumb: "assets/layouts/tech-flow/thumbnail.svg",
+          preview: "assets/layouts/tech-flow/preview.svg",
+          theme: {
+            bg: "#ecfeff",
+            surface: "#ffffff",
+            text: "#102428",
+            muted: "#47656c",
+            primary: "#2454ff",
+            accent: "#11b8a4",
+            fontHead: "\"Plus Jakarta Sans\", \"Manrope\", sans-serif",
+            fontBody: "\"Manrope\", \"Segoe UI\", sans-serif"
+          }
+        }
+      ];
+
+      const icons = [
+        { id: "spark", name: "Brillo", paths: ["M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3z"] },
+        { id: "leaf", name: "Hoja", paths: ["M5 19C14 19 20 13 20 4c-9 0-15 6-15 15z", "M5 19c2-4 5-7 9-9"] },
+        { id: "bolt", name: "Rayo", paths: ["M13 2L4 14h6l-1 8 9-12h-6l1-8z"] },
+        { id: "shield", name: "Escudo", paths: ["M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"] },
+        { id: "heart", name: "Corazón", paths: ["M20 8.5C20 14 12 20 12 20S4 14 4 8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8 2.5z"] },
+        { id: "star", name: "Estrella", paths: ["M12 3l2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6-4.3-4.2 6-.9L12 3z"] },
+        { id: "rocket", name: "Cohete", paths: ["M14 4c4 0 6 2 6 6-2 1-4 3-5 5-4 1-7-2-6-6 2-1 4-3 5-5z", "M9 15l-4 4", "M8 20l-4-1 1-4"] },
+        { id: "lock", name: "Candado", paths: ["M7 10V8a5 5 0 0 1 10 0v2", "M6 10h12v10H6z"] },
+        { id: "globe", name: "Globo", paths: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M3 12h18", "M12 3c3 3 3 15 0 18", "M12 3c-3 3-3 15 0 18"] },
+        { id: "briefcase", name: "Maletín", paths: ["M4 8h16v11H4z", "M9 8V6h6v2", "M4 12h16"] },
+        { id: "chart", name: "Gráfico", paths: ["M4 19h16", "M7 16V9", "M12 16V6", "M17 16v-4"] },
+        { id: "target", name: "Objetivo", paths: ["M12 4a8 8 0 1 0 0 16 8 8 0 1 0 0-16z", "M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z", "M12 2v2", "M12 20v2", "M2 12h2", "M20 12h2"] },
+        { id: "clock", name: "Reloj", paths: ["M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z", "M12 7v5l3 2"] },
+        { id: "phone", name: "Teléfono", paths: ["M5 4h4l2 5-2 2c1.5 3 3 4.5 6 6l2-2 5 2v4c0 1-1 2-2 2C11 23 1 13 1 6c0-1 1-2 2-2h2z"] },
+        { id: "mail", name: "Correo", paths: ["M3 6h18v12H3z", "M3 7l9 6 9-6"] },
+        { id: "map", name: "Mapa", paths: ["M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z", "M9 4v14", "M15 6v14"] },
+        { id: "camera", name: "Cámara", paths: ["M3 7h4l2-2h6l2 2h4v12H3z", "M12 11a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"] },
+        { id: "users", name: "Usuarios", paths: ["M16 11a3 3 0 1 0 0-6 3 3 0 1 0 0 6z", "M8 12a3 3 0 1 0 0-6 3 3 0 1 0 0 6z", "M2 20c0-3 2.5-5 6-5s6 2 6 5", "M12 20c0-2.5 2-4.5 5-4.5S22 17.5 22 20"] },
+        { id: "building", name: "Edificio", paths: ["M4 21h16", "M6 21V5h12v16", "M9 9h2", "M13 9h2", "M9 13h2", "M13 13h2"] },
+        { id: "award", name: "Premio", paths: ["M12 4a5 5 0 1 0 0 10 5 5 0 1 0 0-10z", "M9 13l-1 7 4-2 4 2-1-7"] },
+        { id: "book", name: "Libro", paths: ["M4 5h8a3 3 0 0 1 3 3v11H7a3 3 0 0 0-3 3V5z", "M20 5h-8a3 3 0 0 0-3 3v11h8a3 3 0 0 1 3 3V5z"] },
+        { id: "compass", name: "Brújula", paths: ["M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z", "M15 9l-2 6-6 2 2-6 6-2z"] },
+        { id: "palette", name: "Paleta", paths: ["M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 1 1 0-4h4a5 5 0 0 0 0-10h-4z", "M8 8h.01", "M12 7h.01", "M16 9h.01"] },
+        { id: "handshake", name: "Acuerdo", paths: ["M2 12l4-4 3 3 4-4 3 3 6-6", "M2 12l5 5a2 2 0 0 0 3 0l2-2", "M12 15l2 2a2 2 0 0 0 3 0l5-5"] },
+        { id: "bag", name: "Bolso", paths: ["M5 8h14l-1 12H6L5 8z", "M9 8V6a3 3 0 0 1 6 0v2"] },
+        { id: "chip", name: "Chip", paths: ["M8 8h8v8H8z", "M4 10h2", "M4 14h2", "M18 10h2", "M18 14h2", "M10 4v2", "M14 4v2", "M10 18v2", "M14 18v2"] },
+        { id: "search", name: "Buscar", paths: ["M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z", "M20 20l-4-4"] },
+        { id: "message", name: "Mensaje", paths: ["M4 5h16v11H8l-4 3V5z"] },
+        { id: "wifi", name: "WiFi", paths: ["M2 9c5-4 15-4 20 0", "M5 12c3.5-3 10.5-3 14 0", "M8 15c2-2 6-2 8 0", "M12 19h.01"] },
+        { id: "gift", name: "Regalo", paths: ["M3 8h18v13H3z", "M12 8v13", "M3 12h18", "M8 8s-2-2-2-3a2 2 0 0 1 4 0v3", "M16 8s2-2 2-3a2 2 0 0 0-4 0v3"] }
+      ];
+
+      const sectionCatalog = [
+        {
+          id: "hero",
+          label: "Hero",
+          description: "Bloque inicial con promesa principal",
+          fields: [
+            { key: "title", label: "Título", type: "text", placeholder: "Impulsa tu negocio hoy" },
+            { key: "subtitle", label: "Subtítulo", type: "textarea", placeholder: "Explica tu propuesta de valor", full: true },
+            { key: "backgroundImage", label: "Imagen de fondo (URL)", type: "image" },
+            { key: "backgroundAlt", label: "Texto alternativo imagen fondo", type: "text" },
+            { key: "ctaText", label: "CTA del botón", type: "text", placeholder: "Solicitar demo" },
+            { key: "ctaUrl", label: "URL del botón", type: "url", placeholder: "https://..." },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Soluciones que convierten visitas en clientes",
+            subtitle: "Landing elegante para presentar tus servicios con claridad y confianza.",
+            backgroundImage: "https://source.unsplash.com/1600x900/?modern,office,interior",
+            backgroundAlt: "Fondo principal",
+            ctaText: "Empezar ahora",
+            ctaUrl: "https://example.com",
+            iconId: "spark"
+          }
+        },
+        {
+          id: "destacados",
+          label: "Destacados",
+          description: "Tres puntos de valor o pilares",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "intro", label: "Texto introductorio", type: "textarea", full: true },
+            { key: "item1Title", label: "Destacado 1 - título", type: "text" },
+            { key: "item1Text", label: "Destacado 1 - texto", type: "textarea" },
+            { key: "item2Title", label: "Destacado 2 - título", type: "text" },
+            { key: "item2Text", label: "Destacado 2 - texto", type: "textarea" },
+            { key: "item3Title", label: "Destacado 3 - título", type: "text" },
+            { key: "item3Text", label: "Destacado 3 - texto", type: "textarea" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "¿Por qué elegirnos?",
+            intro: "Puntos clave que nos diferencian frente a otras opciones.",
+            item1Title: "Calidad",
+            item1Text: "Procesos y entregables con alto estándar.",
+            item2Title: "Velocidad",
+            item2Text: "Ejecución rápida sin sacrificar detalle.",
+            item3Title: "Cercanía",
+            item3Text: "Comunicación clara durante todo el proyecto.",
+            iconId: "award"
+          }
+        },
+        {
+          id: "servicios",
+          label: "Servicios",
+          description: "Listado de servicios o soluciones",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "intro", label: "Descripción", type: "textarea", full: true },
+            { key: "service1", label: "Servicio 1", type: "text" },
+            { key: "service2", label: "Servicio 2", type: "text" },
+            { key: "service3", label: "Servicio 3", type: "text" },
+            { key: "serviceImage", label: "Imagen sección (URL)", type: "image" },
+            { key: "serviceImageAlt", label: "Alt de la imagen", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Servicios",
+            intro: "Selecciona tu combinación ideal de servicios.",
+            service1: "Consultoría estratégica",
+            service2: "Implementación técnica",
+            service3: "Soporte continuo",
+            serviceImage: "https://source.unsplash.com/1400x900/?business,teamwork",
+            serviceImageAlt: "Imagen servicios",
+            iconId: "briefcase"
+          }
+        },
+        {
+          id: "beneficios",
+          label: "Beneficios",
+          description: "Beneficios directos para el cliente",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "subtitle", label: "Subtítulo", type: "textarea", full: true },
+            { key: "benefit1", label: "Beneficio 1", type: "text" },
+            { key: "benefit2", label: "Beneficio 2", type: "text" },
+            { key: "benefit3", label: "Beneficio 3", type: "text" },
+            { key: "benefit4", label: "Beneficio 4", type: "text" },
+            { key: "imageUrl", label: "Imagen apoyo (URL)", type: "image" },
+            { key: "imageAlt", label: "Alt imagen", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Beneficios principales",
+            subtitle: "Resultados concretos que notarás en poco tiempo.",
+            benefit1: "Mayor conversión",
+            benefit2: "Mejor posicionamiento de marca",
+            benefit3: "Menor fricción de compra",
+            benefit4: "Escalabilidad",
+            imageUrl: "https://source.unsplash.com/1400x900/?analytics,workspace",
+            imageAlt: "Beneficios",
+            iconId: "target"
+          }
+        },
+        {
+          id: "galeria",
+          label: "Galería",
+          description: "Muestra visual de trabajos o producto",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "subtitle", label: "Texto introductorio", type: "textarea", full: true },
+            { key: "image1", label: "Imagen 1 (URL)", type: "image" },
+            { key: "alt1", label: "Alt imagen 1", type: "text" },
+            { key: "image2", label: "Imagen 2 (URL)", type: "image" },
+            { key: "alt2", label: "Alt imagen 2", type: "text" },
+            { key: "image3", label: "Imagen 3 (URL)", type: "image" },
+            { key: "alt3", label: "Alt imagen 3", type: "text" }
+          ],
+          defaults: {
+            title: "Galería",
+            subtitle: "Ejemplos visuales de resultados y proyectos.",
+            image1: "https://source.unsplash.com/1200x800/?creative,studio",
+            alt1: "Imagen galería 1",
+            image2: "https://source.unsplash.com/1200x800/?product,design",
+            alt2: "Imagen galería 2",
+            image3: "https://source.unsplash.com/1200x800/?technology,workspace",
+            alt3: "Imagen galería 3"
+          }
+        },
+        {
+          id: "testimonios",
+          label: "Opiniones de clientes",
+          description: "Prueba social",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "quote", label: "Testimonio", type: "textarea", full: true },
+            { key: "author", label: "Autor", type: "text" },
+            { key: "role", label: "Cargo o empresa", type: "text" },
+            { key: "photo", label: "Foto cliente (URL)", type: "image" },
+            { key: "photoAlt", label: "Alt foto cliente", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Opiniones",
+            quote: "El equipo entendió perfectamente nuestro negocio y la landing empezó a convertir desde la primera semana.",
+            author: "María González",
+            role: "CEO, Empresa X",
+            photo: "https://source.unsplash.com/720x720/?portrait,woman,professional",
+            photoAlt: "Foto cliente",
+            iconId: "heart"
+          }
+        },
+        {
+          id: "equipo",
+          label: "Equipo",
+          description: "Presentación del equipo",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "intro", label: "Descripción", type: "textarea", full: true },
+            { key: "member1Name", label: "Miembro 1 - nombre", type: "text" },
+            { key: "member1Role", label: "Miembro 1 - rol", type: "text" },
+            { key: "member1Photo", label: "Miembro 1 - foto (URL)", type: "image" },
+            { key: "member1Alt", label: "Alt foto miembro 1", type: "text" },
+            { key: "member2Name", label: "Miembro 2 - nombre", type: "text" },
+            { key: "member2Role", label: "Miembro 2 - rol", type: "text" },
+            { key: "member2Photo", label: "Miembro 2 - foto (URL)", type: "image" },
+            { key: "member2Alt", label: "Alt foto miembro 2", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Nuestro equipo",
+            intro: "Personas clave que hacen posible el resultado.",
+            member1Name: "Laura Martín",
+            member1Role: "Dirección",
+            member1Photo: "https://source.unsplash.com/720x720/?portrait,business,woman",
+            member1Alt: "Laura Martín",
+            member2Name: "Diego Ruiz",
+            member2Role: "Operaciones",
+            member2Photo: "https://source.unsplash.com/720x720/?portrait,business,man",
+            member2Alt: "Diego Ruiz",
+            iconId: "users"
+          }
+        },
+        {
+          id: "faq",
+          label: "FAQ",
+          description: "Preguntas frecuentes",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "intro", label: "Introducción", type: "textarea", full: true },
+            { key: "q1", label: "Pregunta 1", type: "text" },
+            { key: "a1", label: "Respuesta 1", type: "textarea" },
+            { key: "q2", label: "Pregunta 2", type: "text" },
+            { key: "a2", label: "Respuesta 2", type: "textarea" },
+            { key: "q3", label: "Pregunta 3", type: "text" },
+            { key: "a3", label: "Respuesta 3", type: "textarea" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Preguntas frecuentes",
+            intro: "Resuelve las dudas más comunes antes del contacto.",
+            q1: "¿Cuánto tiempo tarda el proyecto?",
+            a1: "Depende del alcance, normalmente entre 1 y 3 semanas.",
+            q2: "¿Incluye soporte tras la entrega?",
+            a2: "Sí, incluimos soporte inicial para ajustes.",
+            q3: "¿Se puede escalar más adelante?",
+            a3: "Sí, la estructura está preparada para crecer.",
+            iconId: "message"
+          }
+        },
+        {
+          id: "contacto",
+          label: "Contacto",
+          description: "Canales de contacto y CTA",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "subtitle", label: "Texto apoyo", type: "textarea", full: true },
+            { key: "phone", label: "Teléfono", type: "text" },
+            { key: "email", label: "Email", type: "text" },
+            { key: "ctaText", label: "CTA botón", type: "text" },
+            { key: "ctaUrl", label: "URL botón", type: "url" },
+            { key: "imageUrl", label: "Imagen sección (URL)", type: "image" },
+            { key: "imageAlt", label: "Alt imagen", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Hablemos",
+            subtitle: "Cuéntanos tu objetivo y te proponemos una solución concreta.",
+            phone: "+34 600 000 000",
+            email: "hola@empresa.com",
+            ctaText: "Contactar",
+            ctaUrl: "https://example.com/contacto",
+            imageUrl: "https://source.unsplash.com/1400x900/?customer,service,office",
+            imageAlt: "Contacto",
+            iconId: "phone"
+          }
+        },
+        {
+          id: "ubicacion",
+          label: "Ubicación",
+          description: "Dirección y referencias",
+          fields: [
+            { key: "title", label: "Título sección", type: "text" },
+            { key: "address", label: "Dirección", type: "textarea", full: true },
+            { key: "schedule", label: "Horario", type: "text" },
+            { key: "transport", label: "Cómo llegar", type: "textarea", full: true },
+            { key: "mapImage", label: "Mapa/imagen ubicación (URL)", type: "image" },
+            { key: "mapAlt", label: "Alt del mapa", type: "text" },
+            { key: "iconId", label: "Icono", type: "icon" }
+          ],
+          defaults: {
+            title: "Dónde estamos",
+            address: "Calle Principal 123, Madrid",
+            schedule: "Lunes a Viernes, 9:00 - 18:00",
+            transport: "Metro L2 y autobuses 10, 27 y 45.",
+            mapImage: "https://source.unsplash.com/1400x900/?city,map,street",
+            mapAlt: "Mapa de ubicación",
+            iconId: "map"
+          }
+        }
+      ];
+
+      const sectionById = Object.fromEntries(sectionCatalog.map((item) => [item.id, item]));
+
+      const textFontCatalog = [
+        { id: "layout", label: "Tipografia del layout", css: "" },
+        { id: "manrope", label: "Manrope", css: "\"Manrope\", \"Segoe UI\", sans-serif" },
+        { id: "jakarta", label: "Plus Jakarta Sans", css: "\"Plus Jakarta Sans\", \"Manrope\", sans-serif" },
+        { id: "fraunces", label: "Fraunces", css: "\"Fraunces\", Georgia, serif" },
+        { id: "lora", label: "Lora", css: "\"Lora\", Georgia, serif" },
+        { id: "dm-serif", label: "DM Serif Display", css: "\"DM Serif Display\", Georgia, serif" }
+      ];
+
+      const textFontById = Object.fromEntries(textFontCatalog.map((font) => [font.id, font]));
+
+      function defaultTextStyle() {
+        return {
+          bold: false,
+          italic: false,
+          underline: false,
+          font: "layout"
+        };
+      }
+
+      function isRichTextField(field) {
+        return field.type === "text" || field.type === "textarea";
+      }
+
+      function normalizeTextStyle(style) {
+        const safeFont = style && textFontById[style.font] ? style.font : "layout";
+        return {
+          bold: Boolean(style && style.bold),
+          italic: Boolean(style && style.italic),
+          underline: Boolean(style && style.underline),
+          font: safeFont
+        };
+      }
+
+      function createDefaultTextStyles(definition) {
+        const styles = {};
+        definition.fields
+          .filter((field) => isRichTextField(field))
+          .forEach((field) => {
+            styles[field.key] = defaultTextStyle();
+          });
+        return styles;
+      }
+
+      function sectionByKey(sectionKey) {
+        return state.selectedSections.find((item) => item.key === sectionKey);
+      }
+
+      function ensureSectionTextStyles(section) {
+        if (!section || typeof section !== "object") return;
+        if (!section.textStyles || typeof section.textStyles !== "object") {
+          section.textStyles = {};
+        }
+
+        const definition = sectionById[section.type];
+        if (!definition) return;
+
+        definition.fields
+          .filter((field) => isRichTextField(field))
+          .forEach((field) => {
+            section.textStyles[field.key] = normalizeTextStyle(section.textStyles[field.key]);
+          });
+      }
+
+      function getFieldTextStyle(sectionKey, fieldKey) {
+        const section = sectionByKey(sectionKey);
+        if (!section) return defaultTextStyle();
+        ensureSectionTextStyles(section);
+        return section.textStyles[fieldKey] || defaultTextStyle();
+      }
+
+      function getFieldTextStyleFromSection(section, fieldKey) {
+        if (!section) return defaultTextStyle();
+        ensureSectionTextStyles(section);
+        return section.textStyles[fieldKey] || defaultTextStyle();
+      }
+
+      function setFieldTextStyle(sectionKey, fieldKey, patch) {
+        const section = sectionByKey(sectionKey);
+        if (!section) return;
+        ensureSectionTextStyles(section);
+        const current = section.textStyles[fieldKey] || defaultTextStyle();
+        section.textStyles[fieldKey] = normalizeTextStyle({ ...current, ...patch });
+      }
+
+      function fieldTextStyleCss(style) {
+        const normalized = normalizeTextStyle(style);
+        const cssParts = [];
+        const font = textFontById[normalized.font];
+        if (font && font.css) {
+          cssParts.push(`font-family:${font.css}`);
+        }
+        if (normalized.bold) cssParts.push("font-weight:700");
+        if (normalized.italic) cssParts.push("font-style:italic");
+        if (normalized.underline) cssParts.push("text-decoration:underline");
+        return cssParts.join("; ");
+      }
+
+      function formattedText(section, fieldKey, value, options = {}) {
+        const fallback = options.fallback || "";
+        const multiline = Boolean(options.multiline);
+        const hasValue = value !== undefined && value !== null && String(value).length > 0;
+        const text = hasValue ? String(value) : String(fallback);
+        const escaped = escapeHtml(text);
+        const content = multiline ? escaped.replaceAll("\n", "<br />") : escaped;
+        const styleCss = fieldTextStyleCss(getFieldTextStyleFromSection(section, fieldKey));
+        if (!styleCss) return content;
+        return `<span style="${escapeHtml(styleCss)}">${content}</span>`;
+      }
+
+      function ensureSiteTextStyles() {
+        if (!state.siteConfig.textStyles || typeof state.siteConfig.textStyles !== "object") {
+          state.siteConfig.textStyles = {};
+        }
+        state.siteConfig.textStyles.title = normalizeTextStyle(state.siteConfig.textStyles.title);
+        state.siteConfig.textStyles.logoAlt = normalizeTextStyle(state.siteConfig.textStyles.logoAlt);
+        state.siteConfig.textStyles.footerText = normalizeTextStyle(state.siteConfig.textStyles.footerText);
+      }
+
+      function getSiteTextStyle(fieldKey) {
+        ensureSiteTextStyles();
+        return state.siteConfig.textStyles[fieldKey] || defaultTextStyle();
+      }
+
+      function setSiteTextStyle(fieldKey, patch) {
+        ensureSiteTextStyles();
+        const current = state.siteConfig.textStyles[fieldKey] || defaultTextStyle();
+        state.siteConfig.textStyles[fieldKey] = normalizeTextStyle({ ...current, ...patch });
+      }
+
+      function formattedSiteText(fieldKey, value, options = {}) {
+        const fallback = options.fallback || "";
+        const multiline = Boolean(options.multiline);
+        const hasValue = value !== undefined && value !== null && String(value).length > 0;
+        const text = hasValue ? String(value) : String(fallback);
+        const escaped = escapeHtml(text);
+        const content = multiline ? escaped.replaceAll("\n", "<br />") : escaped;
+        const styleCss = fieldTextStyleCss(getSiteTextStyle(fieldKey));
+        if (!styleCss) return content;
+        return `<span style="${escapeHtml(styleCss)}">${content}</span>`;
+      }
+
+      function applyStyleToFieldControl(element, style) {
+        if (!element) return;
+        const normalized = normalizeTextStyle(style);
+        const font = textFontById[normalized.font];
+        element.style.fontFamily = font && font.css ? font.css : "";
+        element.style.fontWeight = normalized.bold ? "700" : "";
+        element.style.fontStyle = normalized.italic ? "italic" : "";
+        element.style.textDecoration = normalized.underline ? "underline" : "";
+      }
+
+      const state = {
+        selectedLayout: layouts[0].id,
+        selectedSections: [],
+        siteConfig: {
+          title: "Mi Sitio",
+          logoUrl: "",
+          logoAlt: "Logo del sitio",
+          footerText: "",
+          footerEdited: false,
+          textStyles: {
+            title: defaultTextStyle(),
+            logoAlt: defaultTextStyle(),
+            footerText: defaultTextStyle()
+          }
+        }
+      };
+
+      const dom = {
+        layoutTrack: document.getElementById("layoutTrack"),
+        sectionSelect: document.getElementById("sectionSelect"),
+        addSectionBtn: document.getElementById("addSectionBtn"),
+        sectionList: document.getElementById("sectionList"),
+        siteTitleInput: document.getElementById("siteTitleInput"),
+        siteTitleStyleTools: document.getElementById("siteTitleStyleTools"),
+        siteLogoUrlInput: document.getElementById("siteLogoUrlInput"),
+        siteLogoAltInput: document.getElementById("siteLogoAltInput"),
+        siteLogoAltStyleTools: document.getElementById("siteLogoAltStyleTools"),
+        selectedNavPreview: document.getElementById("selectedNavPreview"),
+        footerEditorInput: document.getElementById("footerEditorInput"),
+        footerEditorStyleTools: document.getElementById("footerEditorStyleTools"),
+        regenerateFooterBtn: document.getElementById("regenerateFooterBtn"),
+        contentForms: document.getElementById("contentForms"),
+        downloadBtn: document.getElementById("downloadBtn"),
+        previewFrame: document.getElementById("previewFrame"),
+        status: document.getElementById("status"),
+        layoutModal: document.getElementById("layoutModal"),
+        layoutModalImage: document.getElementById("layoutModalImage"),
+        layoutModalTitle: document.getElementById("layoutModalTitle"),
+        layoutModalCloseBtn: document.getElementById("layoutModalCloseBtn"),
+        layoutModalSelectBtn: document.getElementById("layoutModalSelectBtn")
+      };
+
+      let previewObserver = null;
+      let previewResizeInterval = null;
+      let livePreviewTimer = null;
+      let modalLayoutId = null;
+
+      function clone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
+
+      function setStatus(message, type = "") {
+        dom.status.className = `status ${type}`.trim();
+        dom.status.textContent = message;
+      }
+
+      function fitPreviewFrameHeight() {
+        const frame = dom.previewFrame;
+        const doc = frame.contentDocument;
+        if (!doc) return;
+
+        const html = doc.documentElement;
+        const body = doc.body;
+        const height = Math.max(
+          html ? html.scrollHeight : 0,
+          html ? html.offsetHeight : 0,
+          body ? body.scrollHeight : 0,
+          body ? body.offsetHeight : 0
+        );
+
+        if (height > 0) {
+          frame.style.height = `${height + 24}px`;
+        }
+      }
+
+      function installPreviewAutoResize() {
+        const frame = dom.previewFrame;
+        const doc = frame.contentDocument;
+        if (!doc || !doc.documentElement) return;
+
+        fitPreviewFrameHeight();
+
+        if (previewObserver) {
+          previewObserver.disconnect();
+        }
+        if (previewResizeInterval) {
+          clearInterval(previewResizeInterval);
+        }
+
+        previewObserver = new MutationObserver(() => {
+          fitPreviewFrameHeight();
+        });
+
+        previewObserver.observe(doc.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          characterData: true
+        });
+
+        doc.querySelectorAll("img").forEach((img) => {
+          img.addEventListener("load", fitPreviewFrameHeight);
+          img.addEventListener("error", fitPreviewFrameHeight);
+        });
+
+        [120, 350, 800, 1500, 2600].forEach((ms) => {
+          setTimeout(fitPreviewFrameHeight, ms);
+        });
+
+        previewResizeInterval = setInterval(fitPreviewFrameHeight, 3000);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function safeHref(raw) {
+        const value = String(raw || "").trim();
+        if (!value) return "#";
+        const lower = value.toLowerCase();
+        if (lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("mailto:") || lower.startsWith("tel:")) {
+          return value;
+        }
+        return "#";
+      }
+
+      function pickLayout() {
+        return layouts.find((layout) => layout.id === state.selectedLayout) || layouts[0];
+      }
+
+      function openLayoutModal(layoutId) {
+        const layout = layouts.find((item) => item.id === layoutId);
+        if (!layout) return;
+        modalLayoutId = layout.id;
+        dom.layoutModalImage.src = layout.preview || layout.thumb;
+        dom.layoutModalImage.alt = `Vista ampliada de ${layout.name}`;
+        dom.layoutModalTitle.textContent = `${layout.name} · ${layout.sector}`;
+        dom.layoutModalSelectBtn.textContent = `Seleccionar ${layout.name}`;
+        dom.layoutModal.hidden = false;
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeLayoutModal() {
+        dom.layoutModal.hidden = true;
+        document.body.style.overflow = "";
+        modalLayoutId = null;
+      }
+
+      function iconSvg(iconId) {
+        const icon = icons.find((item) => item.id === iconId) || icons[0];
+        const paths = icon.paths
+          .map((path) => `<path d="${path}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>`)
+          .join("");
+        return `<span class="i" aria-hidden="true"><svg viewBox="0 0 24 24">${paths}</svg></span>`;
+      }
+
+      function renderLayouts() {
+        dom.layoutTrack.innerHTML = layouts
+          .map(
+            (layout) => `
+          <article class="layout-card ${layout.id === state.selectedLayout ? "selected" : ""}" role="listitem">
+            <div class="layout-shot">
+              <button class="layout-thumb-btn" type="button" data-open-layout="${layout.id}" aria-label="Abrir vista ampliada de ${layout.name}">
+                <div class="layout-thumb-topbar"><span></span><span></span><span></span></div>
+                <img class="layout-thumb" src="${layout.thumb}" alt="Miniatura ${layout.name}" loading="lazy" />
+                <span class="layout-zoom-hint">Ver ejemplo</span>
+              </button>
+            </div>
+            <div class="layout-meta">
+              <div class="layout-copy">
+                <strong>${layout.name}</strong>
+                <span>${layout.sector} · ${layout.mood}</span>
+              </div>
+              <button class="btn ${layout.id === state.selectedLayout ? "primary" : "secondary"}" data-pick-layout="${layout.id}" type="button">
+                ${layout.id === state.selectedLayout ? "Seleccionado" : "Seleccionar"}
+              </button>
+            </div>
+          </article>
+        `
+          )
+          .join("");
+      }
+
+      function renderSectionSelector() {
+        const available = sectionCatalog.filter(
+          (section) => !state.selectedSections.some((selected) => selected.type === section.id)
+        );
+
+        dom.sectionSelect.innerHTML = available
+          .map((section) => `<option value="${section.id}">${section.label}</option>`)
+          .join("");
+
+        dom.addSectionBtn.disabled = available.length === 0;
+      }
+
+      function addSection(type) {
+        if (!type) return;
+        if (state.selectedSections.length >= 10) {
+          setStatus("Solo puedes añadir un máximo de 10 secciones.", "error");
+          return;
+        }
+        if (state.selectedSections.some((section) => section.type === type)) {
+          setStatus("Ese tipo de sección ya está añadido.", "error");
+          return;
+        }
+
+        const definition = sectionById[type];
+        if (!definition) return;
+
+        state.selectedSections.push({
+          key: `${type}-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          type,
+          content: clone(definition.defaults),
+          textStyles: createDefaultTextStyles(definition)
+        });
+
+        setStatus(`Sección "${definition.label}" añadida.`, "success");
+        renderAll();
+      }
+
+      function removeSection(key) {
+        const index = state.selectedSections.findIndex((section) => section.key === key);
+        if (index < 0) return;
+        const removed = state.selectedSections.splice(index, 1)[0];
+        setStatus(`Sección "${sectionById[removed.type].label}" eliminada.`, "success");
+        renderAll();
+      }
+
+      function moveSection(key, direction) {
+        const index = state.selectedSections.findIndex((section) => section.key === key);
+        if (index < 0) return;
+        const target = direction === "up" ? index - 1 : index + 1;
+        if (target < 0 || target >= state.selectedSections.length) return;
+        const [item] = state.selectedSections.splice(index, 1);
+        state.selectedSections.splice(target, 0, item);
+        renderAll();
+      }
+
+      function renderSectionList() {
+        if (state.selectedSections.length === 0) {
+          dom.sectionList.innerHTML = "<p class='note'>Aún no has añadido secciones.</p>";
+          return;
+        }
+
+        dom.sectionList.innerHTML = state.selectedSections
+          .map((section, index) => {
+            const definition = sectionById[section.type];
+            return `
+            <article class="section-item">
+              <div class="section-top">
+                <div>
+                  <strong>${index + 1}. ${definition.label}</strong>
+                  <p>${definition.description}</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn neutral" type="button" data-move-up="${section.key}" ${index === 0 ? "disabled" : ""}>Subir</button>
+                  <button class="btn neutral" type="button" data-move-down="${section.key}" ${
+                    index === state.selectedSections.length - 1 ? "disabled" : ""
+                  }>Bajar</button>
+                  <button class="btn secondary" type="button" data-remove-section="${section.key}">Quitar</button>
+                </div>
+              </div>
+            </article>
+          `;
+          })
+          .join("");
+      }
+
+      function iconOptions(selectedId) {
+        return icons
+          .map((icon) => `<option value="${icon.id}" ${icon.id === selectedId ? "selected" : ""}>${icon.name}</option>`)
+          .join("");
+      }
+
+      function fontOptions(selectedId) {
+        return textFontCatalog
+          .map((font) => `<option value="${font.id}" ${font.id === selectedId ? "selected" : ""}>${font.label}</option>`)
+          .join("");
+      }
+
+      function renderStyleTools(sectionKey, fieldKey, style) {
+        return `
+          <div class="text-style-tools" role="group" aria-label="Formato de texto">
+            <button
+              type="button"
+              class="style-btn ${style.bold ? "active" : ""}"
+              data-style-toggle="bold"
+              data-key="${sectionKey}"
+              data-field="${fieldKey}"
+              aria-label="Negrita"
+              aria-pressed="${style.bold ? "true" : "false"}"
+            >B</button>
+            <button
+              type="button"
+              class="style-btn ${style.italic ? "active" : ""}"
+              data-style-toggle="italic"
+              data-key="${sectionKey}"
+              data-field="${fieldKey}"
+              aria-label="Cursiva"
+              aria-pressed="${style.italic ? "true" : "false"}"
+            ><em>I</em></button>
+            <button
+              type="button"
+              class="style-btn ${style.underline ? "active" : ""}"
+              data-style-toggle="underline"
+              data-key="${sectionKey}"
+              data-field="${fieldKey}"
+              aria-label="Subrayado"
+              aria-pressed="${style.underline ? "true" : "false"}"
+            >U</button>
+            <select
+              class="font-picker"
+              data-style-font="true"
+              data-key="${sectionKey}"
+              data-field="${fieldKey}"
+              aria-label="Tipografia del campo"
+            >
+              ${fontOptions(style.font)}
+            </select>
+          </div>
+        `;
+      }
+
+      function renderSiteStyleTools(fieldKey, label) {
+        const style = getSiteTextStyle(fieldKey);
+        return `
+          <div class="text-style-tools" role="group" aria-label="${escapeHtml(label)}">
+            <button
+              type="button"
+              class="style-btn ${style.bold ? "active" : ""}"
+              data-site-style-toggle="bold"
+              data-site-field="${fieldKey}"
+              aria-label="Negrita"
+              aria-pressed="${style.bold ? "true" : "false"}"
+            >B</button>
+            <button
+              type="button"
+              class="style-btn ${style.italic ? "active" : ""}"
+              data-site-style-toggle="italic"
+              data-site-field="${fieldKey}"
+              aria-label="Cursiva"
+              aria-pressed="${style.italic ? "true" : "false"}"
+            ><em>I</em></button>
+            <button
+              type="button"
+              class="style-btn ${style.underline ? "active" : ""}"
+              data-site-style-toggle="underline"
+              data-site-field="${fieldKey}"
+              aria-label="Subrayado"
+              aria-pressed="${style.underline ? "true" : "false"}"
+            >U</button>
+            <select class="font-picker" data-site-style-font="true" data-site-field="${fieldKey}" aria-label="Tipografia del campo">
+              ${fontOptions(style.font)}
+            </select>
+          </div>
+        `;
+      }
+
+      function renderSiteConfigStyleTools() {
+        dom.siteTitleStyleTools.innerHTML = renderSiteStyleTools("title", "Formato del titulo del sitio");
+        dom.siteLogoAltStyleTools.innerHTML = renderSiteStyleTools("logoAlt", "Formato del texto alternativo del logo");
+        dom.footerEditorStyleTools.innerHTML = renderSiteStyleTools("footerText", "Formato del texto del pie");
+        applyStyleToFieldControl(dom.siteTitleInput, getSiteTextStyle("title"));
+        applyStyleToFieldControl(dom.siteLogoAltInput, getSiteTextStyle("logoAlt"));
+        applyStyleToFieldControl(dom.footerEditorInput, getSiteTextStyle("footerText"));
+      }
+
+      function renderField(sectionKey, field, value) {
+        if (isRichTextField(field)) {
+          const style = getFieldTextStyle(sectionKey, field.key);
+          const styleCss = fieldTextStyleCss(style);
+          const inputStyle = styleCss ? ` style="${escapeHtml(styleCss)}"` : "";
+          const tools = renderStyleTools(sectionKey, field.key, style);
+          if (field.type === "textarea") {
+            return `
+              <label class="${field.full ? "full" : ""}">
+                <span class="field-label">${field.label}</span>
+                ${tools}
+                <textarea class="rich-input" data-key="${sectionKey}" data-field="${field.key}" rows="3" placeholder="${escapeHtml(
+                  field.placeholder || ""
+                )}"${inputStyle}>${escapeHtml(value || "")}</textarea>
+              </label>
+            `;
+          }
+
+          return `
+            <label class="${field.full ? "full" : ""}">
+              <span class="field-label">${field.label}</span>
+              ${tools}
+              <input
+                class="rich-input"
+                data-key="${sectionKey}"
+                data-field="${field.key}"
+                type="text"
+                placeholder="${escapeHtml(field.placeholder || "")}"
+                value="${escapeHtml(value || "")}"${inputStyle}
+              />
+            </label>
+          `;
+        }
+
+        if (field.type === "icon") {
+          return `
+            <label>
+              ${field.label}
+              <select data-key="${sectionKey}" data-field="${field.key}">
+                ${iconOptions(value || icons[0].id)}
+              </select>
+            </label>
+          `;
+        }
+
+        const inputType = field.type === "url" || field.type === "image" ? "url" : "text";
+        return `
+          <label class="${field.full ? "full" : ""}">
+            ${field.label}
+            <input data-key="${sectionKey}" data-field="${field.key}" type="${inputType}" placeholder="${escapeHtml(field.placeholder || "")}" value="${escapeHtml(value || "")}" />
+          </label>
+        `;
+      }
+
+      function renderContentForms() {
+        if (state.selectedSections.length === 0) {
+          dom.contentForms.innerHTML = "<p class='note'>Añade secciones arriba y aquí aparecerán formularios personalizados para cada una.</p>";
+          return;
+        }
+
+        dom.contentForms.innerHTML = state.selectedSections
+          .map((section, index) => {
+            const definition = sectionById[section.type];
+            const fieldsHtml = definition.fields
+              .map((field) => renderField(section.key, field, section.content[field.key]))
+              .join("");
+
+            return `
+              <article class="content-card">
+                <h3>${index + 1}. ${definition.label}</h3>
+                <p>${definition.description}</p>
+                <div class="field-grid">${fieldsHtml}</div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function buildAutoFooterData() {
+        const siteTitle = String(state.siteConfig.title || "").trim() || "Mi Sitio";
+        const year = new Date().getFullYear();
+        const sectionNames = state.selectedSections.map((section) => sectionById[section.type].label);
+
+        const lines = [];
+        if (sectionNames.length > 0) {
+          lines.push(`Secciones incluidas: ${sectionNames.join(" · ")}.`);
+        } else {
+          lines.push("Secciones incluidas: landing pendiente de configuración.");
+        }
+
+        const contacto = state.selectedSections.find((section) => section.type === "contacto");
+        if (contacto) {
+          const phone = String(contacto.content.phone || "").trim();
+          const email = String(contacto.content.email || "").trim();
+          if (phone || email) {
+            lines.push(`Contacto: ${[phone, email].filter(Boolean).join(" · ")}.`);
+          }
+        }
+
+        const ubicacion = state.selectedSections.find((section) => section.type === "ubicacion");
+        if (ubicacion) {
+          const address = String(ubicacion.content.address || "").trim();
+          const schedule = String(ubicacion.content.schedule || "").trim();
+          if (address || schedule) {
+            lines.push(`Ubicación: ${[address, schedule].filter(Boolean).join(" · ")}.`);
+          }
+        }
+
+        lines.push(`© ${year} ${siteTitle}. Todos los derechos reservados.`);
+        return { siteTitle, lines };
+      }
+
+      function syncFooterEditorFromAuto(force = false) {
+        const footerData = buildAutoFooterData();
+        if (!state.siteConfig.footerEdited || force || !String(state.siteConfig.footerText || "").trim()) {
+          state.siteConfig.footerText = footerData.lines.join("\n");
+        }
+        dom.footerEditorInput.value = state.siteConfig.footerText;
+      }
+
+      function renderHeaderFooterConfig() {
+        const navTags = state.selectedSections
+          .map((section, index) => `<span class="tag">${index + 1}. ${escapeHtml(sectionById[section.type].label)}</span>`)
+          .join("");
+
+        dom.selectedNavPreview.innerHTML = navTags || "<span class='note'>Sin secciones seleccionadas.</span>";
+        syncFooterEditorFromAuto(false);
+        renderSiteConfigStyleTools();
+      }
+
+      function renderAll() {
+        renderLayouts();
+        renderSectionSelector();
+        renderSectionList();
+        renderHeaderFooterConfig();
+        renderContentForms();
+        scheduleLivePreview();
+      }
+
+      function updateField(sectionKey, fieldKey, value) {
+        const section = state.selectedSections.find((item) => item.key === sectionKey);
+        if (!section) return;
+        section.content[fieldKey] = value;
+      }
+
+      function imageFieldsFor(type) {
+        const definition = sectionById[type];
+        if (!definition) return [];
+        return definition.fields.filter((field) => field.type === "image").map((field) => field.key);
+      }
+
+      function imageMapKey(sectionKey, fieldKey) {
+        return `${sectionKey}:${fieldKey}`;
+      }
+
+      async function urlToDataUrl(url) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+          const response = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const blob = await response.blob();
+          if (!blob.type.startsWith("image/")) {
+            throw new Error("El recurso no es una imagen válida");
+          }
+
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("No se pudo convertir la imagen"));
+            reader.readAsDataURL(blob);
+          });
+
+          return String(dataUrl);
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+
+      function canLoadImageUrl(url) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          const timeoutId = setTimeout(() => {
+            image.onload = null;
+            image.onerror = null;
+            reject(new Error("Timeout al cargar imagen"));
+          }, 12000);
+
+          image.onload = () => {
+            clearTimeout(timeoutId);
+            resolve(true);
+          };
+
+          image.onerror = () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Error de carga"));
+          };
+
+          image.referrerPolicy = "no-referrer";
+          image.decoding = "async";
+          image.src = url;
+        });
+      }
+
+      async function resolveRequestedImages() {
+        const embedded = new Map();
+        const externalFallbacks = [];
+
+        const logoUrl = String(state.siteConfig.logoUrl || "").trim();
+        if (logoUrl) {
+          setStatus("Validando imagen del logo de cabecera...");
+          try {
+            const dataUrl = await urlToDataUrl(logoUrl);
+            embedded.set(imageMapKey("__site", "logoUrl"), { src: dataUrl, embedded: true });
+          } catch (error) {
+            try {
+              await canLoadImageUrl(logoUrl);
+              embedded.set(imageMapKey("__site", "logoUrl"), { src: logoUrl, embedded: false });
+              externalFallbacks.push({
+                sectionLabel: "Cabecera",
+                fieldLabel: "Logo",
+                url: logoUrl
+              });
+            } catch (loadError) {
+              throw new Error("No se pudo cargar el logo de cabecera. Verifica URL pública y CORS.");
+            }
+          }
+        }
+
+        for (const section of state.selectedSections) {
+          const imageFields = imageFieldsFor(section.type);
+          for (const key of imageFields) {
+            const url = String(section.content[key] || "").trim();
+            if (!url) continue;
+            const field = sectionById[section.type].fields.find((item) => item.key === key);
+            setStatus(`Validando imagen en ${sectionById[section.type].label}: ${field.label}...`);
+            try {
+              const dataUrl = await urlToDataUrl(url);
+              embedded.set(imageMapKey(section.key, key), { src: dataUrl, embedded: true });
+            } catch (error) {
+              try {
+                await canLoadImageUrl(url);
+                embedded.set(imageMapKey(section.key, key), { src: url, embedded: false });
+                externalFallbacks.push({
+                  sectionLabel: sectionById[section.type].label,
+                  fieldLabel: field.label,
+                  url
+                });
+              } catch (loadError) {
+                throw new Error(`No se pudo cargar la imagen "${field.label}" de ${sectionById[section.type].label}. Verifica URL pública y CORS.`);
+              }
+            }
+          }
+        }
+
+        return { embedded, externalFallbacks };
+      }
+
+      function getResolvedImage(section, fieldKey, embeddedMap) {
+        const imageData = embeddedMap.get(imageMapKey(section.key, fieldKey));
+        return imageData ? imageData.src : "";
+      }
+
+      function getResolvedImageByKey(mapKey, embeddedMap) {
+        const imageData = embeddedMap.get(mapKey);
+        return imageData ? imageData.src : "";
+      }
+
+      function buildPreviewImageMap() {
+        const previewMap = new Map();
+        const logoUrl = String(state.siteConfig.logoUrl || "").trim();
+        if (logoUrl) {
+          previewMap.set(imageMapKey("__site", "logoUrl"), { src: logoUrl, embedded: false });
+        }
+
+        for (const section of state.selectedSections) {
+          const imageFields = imageFieldsFor(section.type);
+          for (const key of imageFields) {
+            const url = String(section.content[key] || "").trim();
+            if (!url) continue;
+            previewMap.set(imageMapKey(section.key, key), { src: url, embedded: false });
+          }
+        }
+
+        return previewMap;
+      }
+
+      function renderLivePreview() {
+        try {
+          const previewMap = buildPreviewImageMap();
+          const html = buildLandingHtml(previewMap);
+          dom.previewFrame.srcdoc = html;
+        } catch (error) {
+          // Keep editing flow responsive even if a temporary field value is invalid.
+        }
+      }
+
+      function scheduleLivePreview(delayMs = 120) {
+        if (livePreviewTimer) {
+          clearTimeout(livePreviewTimer);
+        }
+        livePreviewTimer = setTimeout(() => {
+          renderLivePreview();
+        }, delayMs);
+      }
+
+      function deriveSeo() {
+        const hero = state.selectedSections.find((section) => section.type === "hero");
+        const first = state.selectedSections[0];
+        const configuredTitle = String(state.siteConfig.title || "").trim();
+        const siteName = configuredTitle || (hero && hero.content.title) || (first && first.content.title) || "Landing profesional";
+        const description =
+          (hero && hero.content.subtitle) ||
+          (first && (first.content.subtitle || first.content.intro || first.content.title)) ||
+          "Landing generada automáticamente con contenido personalizado.";
+
+        const keywordSet = new Set();
+        for (const section of state.selectedSections) {
+          const def = sectionById[section.type];
+          keywordSet.add(def.label.toLowerCase());
+          const title = String(section.content.title || "").toLowerCase();
+          title
+            .split(/\s+/)
+            .map((word) => word.trim())
+            .filter((word) => word.length > 3)
+            .slice(0, 3)
+            .forEach((word) => keywordSet.add(word));
+        }
+
+        return {
+          siteName,
+          description,
+          keywords: Array.from(keywordSet).slice(0, 12).join(", ")
+        };
+      }
+
+      function renderSectionOutput(section, index, embeddedMap) {
+        const c = section.content;
+        const id = `${section.type}-${index + 1}`;
+        const icon = c.iconId ? iconSvg(c.iconId) : "";
+
+        if (section.type === "hero") {
+          const bgImage = getResolvedImage(section, "backgroundImage", embeddedMap);
+          const ctaHref = safeHref(c.ctaUrl);
+          const style = bgImage
+            ? ` style="background-image:linear-gradient(120deg, rgba(5, 8, 12, 0.62), rgba(6, 8, 12, 0.48)), url('${bgImage}')"`
+            : "";
+          return `
+            <section class="sec sec-hero" id="${id}"${style}>
+              <div class="hero-copy">
+                <div class="sec-head">${icon}<span>Presentación</span></div>
+                <h1>${formattedText(section, "title", c.title)}</h1>
+                <p>${formattedText(section, "subtitle", c.subtitle, { multiline: true })}</p>
+                <a class="cta" href="${escapeHtml(ctaHref)}">${formattedText(section, "ctaText", c.ctaText, { fallback: "Más información" })}</a>
+              </div>
+            </section>
+          `;
+        }
+
+        if (section.type === "destacados") {
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "intro", c.intro, { multiline: true })}</p>
+              <div class="cards three">
+                <article><h3>${formattedText(section, "item1Title", c.item1Title)}</h3><p>${formattedText(section, "item1Text", c.item1Text, { multiline: true })}</p></article>
+                <article><h3>${formattedText(section, "item2Title", c.item2Title)}</h3><p>${formattedText(section, "item2Text", c.item2Text, { multiline: true })}</p></article>
+                <article><h3>${formattedText(section, "item3Title", c.item3Title)}</h3><p>${formattedText(section, "item3Text", c.item3Text, { multiline: true })}</p></article>
+              </div>
+            </section>
+          `;
+        }
+
+        if (section.type === "servicios") {
+          const image = getResolvedImage(section, "serviceImage", embeddedMap);
+          const imageBlock = image
+            ? `<figure class="media"><img loading="lazy" src="${image}" alt="${escapeHtml(c.serviceImageAlt || "Servicios")}" /></figure>`
+            : "";
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "intro", c.intro, { multiline: true })}</p>
+              <ul class="list">
+                <li>${formattedText(section, "service1", c.service1)}</li>
+                <li>${formattedText(section, "service2", c.service2)}</li>
+                <li>${formattedText(section, "service3", c.service3)}</li>
+              </ul>
+              ${imageBlock}
+            </section>
+          `;
+        }
+
+        if (section.type === "beneficios") {
+          const image = getResolvedImage(section, "imageUrl", embeddedMap);
+          const imageBlock = image
+            ? `<figure class="media"><img loading="lazy" src="${image}" alt="${escapeHtml(c.imageAlt || "Beneficios")}" /></figure>`
+            : "";
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "subtitle", c.subtitle, { multiline: true })}</p>
+              <ul class="checks">
+                <li>${formattedText(section, "benefit1", c.benefit1)}</li>
+                <li>${formattedText(section, "benefit2", c.benefit2)}</li>
+                <li>${formattedText(section, "benefit3", c.benefit3)}</li>
+                <li>${formattedText(section, "benefit4", c.benefit4)}</li>
+              </ul>
+              ${imageBlock}
+            </section>
+          `;
+        }
+
+        if (section.type === "galeria") {
+          const img1 = getResolvedImage(section, "image1", embeddedMap);
+          const img2 = getResolvedImage(section, "image2", embeddedMap);
+          const img3 = getResolvedImage(section, "image3", embeddedMap);
+          const cell = (src, alt) =>
+            src
+              ? `<figure class="media"><img loading="lazy" src="${src}" alt="${escapeHtml(alt)}" /></figure>`
+              : `<div class="media ph" aria-hidden="true"></div>`;
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline"><h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "subtitle", c.subtitle, { multiline: true })}</p>
+              <div class="gallery">
+                ${cell(img1, c.alt1 || "Imagen galería 1")}
+                ${cell(img2, c.alt2 || "Imagen galería 2")}
+                ${cell(img3, c.alt3 || "Imagen galería 3")}
+              </div>
+            </section>
+          `;
+        }
+
+        if (section.type === "testimonios") {
+          const photo = getResolvedImage(section, "photo", embeddedMap);
+          const avatar = photo
+            ? `<img class="avatar" loading="lazy" src="${photo}" alt="${escapeHtml(c.photoAlt || c.author || "Cliente")}" />`
+            : `<span class="avatar ph" aria-hidden="true"></span>`;
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <blockquote>
+                <p>${formattedText(section, "quote", c.quote, { multiline: true })}</p>
+                <footer>
+                  ${avatar}
+                  <div>
+                    <strong>${formattedText(section, "author", c.author)}</strong>
+                    <span>${formattedText(section, "role", c.role)}</span>
+                  </div>
+                </footer>
+              </blockquote>
+            </section>
+          `;
+        }
+
+        if (section.type === "equipo") {
+          const m1Photo = getResolvedImage(section, "member1Photo", embeddedMap);
+          const m2Photo = getResolvedImage(section, "member2Photo", embeddedMap);
+          const member = (name, nameKey, role, roleKey, photo, alt) => `
+            <article class="member">
+              ${photo ? `<img loading="lazy" src="${photo}" alt="${escapeHtml(alt || name || "Miembro equipo")}" />` : `<span class="avatar ph" aria-hidden="true"></span>`}
+              <div>
+                <strong>${formattedText(section, nameKey, name)}</strong>
+                <p>${formattedText(section, roleKey, role)}</p>
+              </div>
+            </article>
+          `;
+
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "intro", c.intro, { multiline: true })}</p>
+              <div class="members">
+                ${member(c.member1Name, "member1Name", c.member1Role, "member1Role", m1Photo, c.member1Alt)}
+                ${member(c.member2Name, "member2Name", c.member2Role, "member2Role", m2Photo, c.member2Alt)}
+              </div>
+            </section>
+          `;
+        }
+
+        if (section.type === "faq") {
+          const row = (q, qKey, a, aKey, open) =>
+            `<details ${open ? "open" : ""}><summary>${formattedText(section, qKey, q)}</summary><p>${formattedText(
+              section,
+              aKey,
+              a,
+              { multiline: true }
+            )}</p></details>`;
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "intro", c.intro, { multiline: true })}</p>
+              <div class="faq-list">
+                ${row(c.q1, "q1", c.a1, "a1", true)}
+                ${row(c.q2, "q2", c.a2, "a2", false)}
+                ${row(c.q3, "q3", c.a3, "a3", false)}
+              </div>
+            </section>
+          `;
+        }
+
+        if (section.type === "contacto") {
+          const image = getResolvedImage(section, "imageUrl", embeddedMap);
+          const contactHref = safeHref(c.ctaUrl);
+          const imageBlock = image
+            ? `<figure class="media"><img loading="lazy" src="${image}" alt="${escapeHtml(c.imageAlt || "Contacto")}" /></figure>`
+            : "";
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p>${formattedText(section, "subtitle", c.subtitle, { multiline: true })}</p>
+              <ul class="list compact">
+                <li><strong>Teléfono:</strong> ${formattedText(section, "phone", c.phone)}</li>
+                <li><strong>Email:</strong> ${formattedText(section, "email", c.email)}</li>
+              </ul>
+              <a class="cta" href="${escapeHtml(contactHref)}">${formattedText(section, "ctaText", c.ctaText, { fallback: "Contactar" })}</a>
+              ${imageBlock}
+            </section>
+          `;
+        }
+
+        if (section.type === "ubicacion") {
+          const map = getResolvedImage(section, "mapImage", embeddedMap);
+          const mapBlock = map
+            ? `<figure class="media"><img loading="lazy" src="${map}" alt="${escapeHtml(c.mapAlt || "Mapa de ubicación")}" /></figure>`
+            : "";
+          return `
+            <section class="sec" id="${id}">
+              <header class="sec-headline">${icon}<h2>${formattedText(section, "title", c.title)}</h2></header>
+              <p><strong>Dirección:</strong> ${formattedText(section, "address", c.address, { multiline: true })}</p>
+              <p><strong>Horario:</strong> ${formattedText(section, "schedule", c.schedule)}</p>
+              <p><strong>Cómo llegar:</strong> ${formattedText(section, "transport", c.transport, { multiline: true })}</p>
+              ${mapBlock}
+            </section>
+          `;
+        }
+
+        return "";
+      }
+
+      function buildLandingHtml(embeddedMap) {
+        const layout = pickLayout();
+        const seo = deriveSeo();
+        const footerData = buildAutoFooterData();
+        const configuredTitle = String(state.siteConfig.title || "").trim();
+        const siteTitleRaw = configuredTitle || seo.siteName;
+        const logoSrc = getResolvedImageByKey(imageMapKey("__site", "logoUrl"), embeddedMap);
+        const logoAltRaw = String(state.siteConfig.logoAlt || "").trim() || `Logo de ${siteTitleRaw}`;
+        const brandLogo = logoSrc
+          ? `<img class="brand-logo" src="${logoSrc}" alt="${escapeHtml(logoAltRaw)}" loading="lazy" />`
+          : `<span class="brand-fallback" aria-hidden="true">${escapeHtml((siteTitleRaw || "W").charAt(0).toUpperCase())}</span>`;
+
+        const content = state.selectedSections
+          .map((section, index) => renderSectionOutput(section, index, embeddedMap))
+          .join("\n");
+
+        const navItems = state.selectedSections.map((section, index) => ({
+          id: `${section.type}-${index + 1}`,
+          label: sectionById[section.type].label
+        }));
+
+        const navLinksHtml =
+          navItems.length > 0
+            ? navItems
+                .map((item) => `<li><a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a></li>`)
+                .join("")
+            : `<li><a href="#contenido">Inicio</a></li>`;
+
+        const customFooterLines = String(state.siteConfig.footerText || "")
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        const finalFooterLines = customFooterLines.length > 0 ? customFooterLines : footerData.lines;
+
+        const siteName = escapeHtml(siteTitleRaw);
+        const siteNameVisual = formattedSiteText("title", siteTitleRaw);
+        const siteDescription = escapeHtml(seo.description);
+        const siteKeywords = escapeHtml(seo.keywords);
+        const footerLinesHtml = finalFooterLines.map((line) => `<li>${formattedSiteText("footerText", line)}</li>`).join("");
+
+        return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${siteName}</title>
+  <meta name="description" content="${siteDescription}" />
+  <meta name="keywords" content="${siteKeywords}" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${siteName}" />
+  <meta property="og:description" content="${siteDescription}" />
+  <meta name="theme-color" content="${escapeHtml(layout.theme.primary)}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: ${layout.theme.bg};
+      --surface: ${layout.theme.surface};
+      --text: ${layout.theme.text};
+      --muted: ${layout.theme.muted};
+      --primary: ${layout.theme.primary};
+      --accent: ${layout.theme.accent};
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: ${layout.theme.fontBody};
+      line-height: 1.55;
+      background: radial-gradient(circle at 8% 5%, rgba(0,0,0,.05) 0%, transparent 40%), var(--bg);
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .skip-link:focus {
+      position: fixed;
+      left: 1rem;
+      top: 1rem;
+      width: auto;
+      height: auto;
+      z-index: 999;
+      background: #fff;
+      color: #111;
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 0.55rem 0.8rem;
+    }
+
+    .site {
+      width: min(1080px, 92vw);
+      margin: 0 auto;
+      padding: 1.1rem 0 1.2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      backdrop-filter: blur(8px);
+      background: color-mix(in srgb, var(--bg) 88%, white);
+      border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+
+    .header-wrap {
+      width: min(1080px, 92vw);
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .9rem;
+      padding: .65rem 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      color: inherit;
+      text-decoration: none;
+      min-width: 0;
+    }
+
+    .brand span {
+      font-family: ${layout.theme.fontHead};
+      font-size: clamp(1rem, 1.9vw, 1.35rem);
+      line-height: 1.1;
+    }
+
+    .brand-logo,
+    .brand-fallback {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.12);
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      object-fit: cover;
+      display: block;
+      background: #fff;
+    }
+
+    .brand-fallback {
+      display: inline-grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .site-nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: .4rem;
+    }
+
+    .site-nav a {
+      text-decoration: none;
+      color: inherit;
+      font-size: .86rem;
+      padding: .36rem .6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.13);
+      background: color-mix(in srgb, var(--surface) 85%, white);
+    }
+
+    .sec {
+      background: var(--surface);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 2vw, 1.5rem);
+      box-shadow: 0 14px 34px rgba(0,0,0,.08);
+      scroll-margin-top: 95px;
+    }
+
+    .sec-hero {
+      min-height: min(74vh, 560px);
+      display: grid;
+      align-items: center;
+      color: #fff;
+      background:
+        linear-gradient(120deg, rgba(12, 12, 16, .6), rgba(20, 20, 26, .45)),
+        linear-gradient(120deg, var(--primary), var(--accent));
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-copy {
+      max-width: 68ch;
+    }
+
+    .hero-copy h1 {
+      margin: 0.35rem 0 0.65rem;
+      font-family: ${layout.theme.fontHead};
+      font-size: clamp(1.9rem, 5vw, 3.2rem);
+      line-height: 1.08;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: rgba(255,255,255,.94);
+    }
+
+    .sec-head {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .75rem;
+      color: rgba(255,255,255,.9);
+    }
+
+    .sec-headline {
+      margin-bottom: .45rem;
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+    }
+
+    .sec h2 {
+      margin: 0;
+      font-family: ${layout.theme.fontHead};
+      line-height: 1.12;
+      font-size: clamp(1.35rem, 2.5vw, 2rem);
+    }
+
+    .i {
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: .7rem;
+      display: inline-grid;
+      place-items: center;
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(0,0,0,.13);
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .sec-hero .i {
+      color: #fff;
+      border-color: rgba(255,255,255,.4);
+      background: rgba(255,255,255,.16);
+    }
+
+    .i svg {
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .cta {
+      margin-top: 1rem;
+      display: inline-block;
+      text-decoration: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: .65rem;
+      padding: .64rem 1rem;
+      font-weight: 600;
+      border: 1px solid rgba(0,0,0,.15);
+    }
+
+    .sec-hero .cta {
+      background: #fff;
+      color: #111;
+      border: 0;
+    }
+
+    .cards.three {
+      margin-top: .7rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .7rem;
+    }
+
+    .cards article {
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: .85rem;
+      padding: .75rem;
+      background: rgba(255,255,255,.7);
+    }
+
+    .cards h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .cards p {
+      margin: .35rem 0 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .list {
+      margin: .6rem 0 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: .35rem;
+    }
+
+    .list.compact {
+      gap: .2rem;
+    }
+
+    .checks {
+      margin: .6rem 0 0;
+      list-style: none;
+      padding: 0;
+      display: grid;
+      gap: .38rem;
+    }
+
+    .checks li::before {
+      content: "✓ ";
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .gallery {
+      margin-top: .7rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .65rem;
+    }
+
+    .media {
+      margin: .75rem 0 0;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.12);
+      overflow: hidden;
+      background: #e5e7eb;
+    }
+
+    .media img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .media.ph {
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #e5e7eb, #cbd5e1);
+      margin: 0;
+    }
+
+    blockquote {
+      margin: .7rem 0 0;
+      padding: .85rem;
+      border-left: 4px solid var(--primary);
+      background: rgba(255,255,255,.66);
+      border-radius: .5rem;
+    }
+
+    blockquote p { margin: 0; }
+
+    blockquote footer {
+      margin-top: .72rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: inline-block;
+      background: #cbd5e1;
+      border: 1px solid rgba(0,0,0,.15);
+    }
+
+    .avatar.ph {
+      border-radius: 50%;
+      background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    }
+
+    .members {
+      margin-top: .7rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .65rem;
+    }
+
+    .member {
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: .75rem;
+      padding: .65rem;
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+    }
+
+    .member img,
+    .member .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .member p {
+      margin: .2rem 0 0;
+      color: var(--muted);
+    }
+
+    .faq-list {
+      margin-top: .65rem;
+      display: grid;
+      gap: .45rem;
+    }
+
+    details {
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: .65rem;
+      padding: .58rem .68rem;
+      background: rgba(255,255,255,.72);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    details p {
+      margin: .42rem 0 0;
+      color: var(--muted);
+    }
+
+    .site-footer {
+      border-top: 1px solid rgba(0,0,0,.1);
+      background: color-mix(in srgb, var(--surface) 65%, white);
+      color: var(--muted);
+      padding: 1rem 0 1.3rem;
+    }
+
+    .site-footer-wrap {
+      width: min(1080px, 92vw);
+      margin: 0 auto;
+    }
+
+    .site-footer ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      display: grid;
+      gap: .3rem;
+      font-size: .92rem;
+    }
+
+    @media (max-width: 860px) {
+      .header-wrap,
+      .site {
+        width: min(1080px, 94vw);
+      }
+
+      .header-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .site-nav ul {
+        justify-content: flex-start;
+      }
+
+      .cards.three,
+      .gallery,
+      .members {
+        grid-template-columns: 1fr;
+      }
+
+      .sec-hero {
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <header class="site-header">
+    <div class="header-wrap">
+      <a class="brand" href="#contenido">
+        ${brandLogo}
+        <span>${siteNameVisual}</span>
+      </a>
+      <nav class="site-nav" aria-label="Navegación principal">
+        <ul>
+          ${navLinksHtml}
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main class="site" id="contenido" role="main">
+    ${content}
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-wrap">
+      <ul>
+        ${footerLinesHtml}
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>`;
+      }
+
+      function downloadIndex(html) {
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "index.html";
+        document.body.append(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      async function generateAndRender({ download }) {
+        if (!state.selectedLayout) {
+          setStatus("Debes seleccionar un layout.", "error");
+          return;
+        }
+
+        if (state.selectedSections.length === 0) {
+          setStatus("Añade al menos una sección.", "error");
+          return;
+        }
+
+        try {
+          const { embedded, externalFallbacks } = await resolveRequestedImages();
+          const html = buildLandingHtml(embedded);
+          dom.previewFrame.srcdoc = html;
+          if (externalFallbacks.length > 0) {
+            setStatus(`HTML generado. ${externalFallbacks.length} imagen(es) usan URL externa por bloqueo CORS del servidor.`, "success");
+          } else {
+            setStatus("HTML generado correctamente. Recursos validados e incrustados.", "success");
+          }
+          if (download) downloadIndex(html);
+        } catch (error) {
+          setStatus(error.message || "Error al generar el HTML", "error");
+        }
+      }
+
+      dom.layoutTrack.addEventListener("click", (event) => {
+        const openButton = event.target.closest("[data-open-layout]");
+        if (openButton) {
+          openLayoutModal(openButton.dataset.openLayout);
+          return;
+        }
+
+        const button = event.target.closest("[data-pick-layout]");
+        if (!button) return;
+        state.selectedLayout = button.dataset.pickLayout;
+        renderLayouts();
+        scheduleLivePreview();
+        setStatus("Layout seleccionado.", "success");
+      });
+
+      dom.layoutModal.addEventListener("click", (event) => {
+        if (event.target.closest("[data-close-layout-modal]")) {
+          closeLayoutModal();
+        }
+      });
+
+      dom.layoutModalCloseBtn.addEventListener("click", () => {
+        closeLayoutModal();
+      });
+
+      dom.layoutModalSelectBtn.addEventListener("click", () => {
+        if (!modalLayoutId) return;
+        state.selectedLayout = modalLayoutId;
+        renderLayouts();
+        scheduleLivePreview();
+        setStatus("Layout seleccionado.", "success");
+        closeLayoutModal();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !dom.layoutModal.hidden) {
+          closeLayoutModal();
+        }
+      });
+
+      dom.addSectionBtn.addEventListener("click", () => {
+        addSection(dom.sectionSelect.value);
+      });
+
+      dom.sectionList.addEventListener("click", (event) => {
+        const up = event.target.closest("[data-move-up]");
+        if (up) {
+          moveSection(up.dataset.moveUp, "up");
+          return;
+        }
+
+        const down = event.target.closest("[data-move-down]");
+        if (down) {
+          moveSection(down.dataset.moveDown, "down");
+          return;
+        }
+
+        const remove = event.target.closest("[data-remove-section]");
+        if (remove) {
+          removeSection(remove.dataset.removeSection);
+        }
+      });
+
+      function onContentChange(event) {
+        const target = event.target;
+        if (target.dataset.styleFont) return;
+        const sectionKey = target.dataset.key;
+        const fieldKey = target.dataset.field;
+        if (!sectionKey || !fieldKey) return;
+        updateField(sectionKey, fieldKey, target.value);
+        renderHeaderFooterConfig();
+        scheduleLivePreview();
+      }
+
+      function onTextStyleToggle(event) {
+        const button = event.target.closest("[data-style-toggle]");
+        if (!button) return;
+        const sectionKey = button.dataset.key;
+        const fieldKey = button.dataset.field;
+        const styleKey = button.dataset.styleToggle;
+        if (!sectionKey || !fieldKey || !styleKey) return;
+        const current = getFieldTextStyle(sectionKey, fieldKey);
+        setFieldTextStyle(sectionKey, fieldKey, { [styleKey]: !current[styleKey] });
+        renderContentForms();
+        scheduleLivePreview();
+      }
+
+      function onTextStyleFontChange(event) {
+        const target = event.target;
+        if (!target.matches("[data-style-font]")) return;
+        const sectionKey = target.dataset.key;
+        const fieldKey = target.dataset.field;
+        if (!sectionKey || !fieldKey) return;
+        setFieldTextStyle(sectionKey, fieldKey, { font: target.value });
+        renderContentForms();
+        scheduleLivePreview();
+      }
+
+      dom.contentForms.addEventListener("input", onContentChange);
+      dom.contentForms.addEventListener("change", onContentChange);
+      dom.contentForms.addEventListener("click", onTextStyleToggle);
+      dom.contentForms.addEventListener("change", onTextStyleFontChange);
+
+      function onSiteConfigChange() {
+        state.siteConfig.title = dom.siteTitleInput.value;
+        state.siteConfig.logoUrl = dom.siteLogoUrlInput.value;
+        state.siteConfig.logoAlt = dom.siteLogoAltInput.value;
+        applyStyleToFieldControl(dom.siteTitleInput, getSiteTextStyle("title"));
+        applyStyleToFieldControl(dom.siteLogoAltInput, getSiteTextStyle("logoAlt"));
+        renderHeaderFooterConfig();
+        scheduleLivePreview();
+      }
+
+      dom.siteTitleInput.addEventListener("input", onSiteConfigChange);
+      dom.siteTitleInput.addEventListener("change", onSiteConfigChange);
+      dom.siteLogoUrlInput.addEventListener("input", onSiteConfigChange);
+      dom.siteLogoUrlInput.addEventListener("change", onSiteConfigChange);
+      dom.siteLogoAltInput.addEventListener("input", onSiteConfigChange);
+      dom.siteLogoAltInput.addEventListener("change", onSiteConfigChange);
+
+      function onSiteStyleToggle(event) {
+        const button = event.target.closest("[data-site-style-toggle]");
+        if (!button) return;
+        const fieldKey = button.dataset.siteField;
+        const styleKey = button.dataset.siteStyleToggle;
+        if (!fieldKey || !styleKey) return;
+        const current = getSiteTextStyle(fieldKey);
+        setSiteTextStyle(fieldKey, { [styleKey]: !current[styleKey] });
+        renderSiteConfigStyleTools();
+        scheduleLivePreview();
+      }
+
+      function onSiteStyleFontChange(event) {
+        const target = event.target;
+        if (!target.matches("[data-site-style-font]")) return;
+        const fieldKey = target.dataset.siteField;
+        if (!fieldKey) return;
+        setSiteTextStyle(fieldKey, { font: target.value });
+        renderSiteConfigStyleTools();
+        scheduleLivePreview();
+      }
+
+      [dom.siteTitleStyleTools, dom.siteLogoAltStyleTools, dom.footerEditorStyleTools].forEach((toolsDom) => {
+        toolsDom.addEventListener("click", onSiteStyleToggle);
+        toolsDom.addEventListener("change", onSiteStyleFontChange);
+      });
+
+      function onFooterEditorChange() {
+        state.siteConfig.footerText = dom.footerEditorInput.value;
+        state.siteConfig.footerEdited = true;
+        applyStyleToFieldControl(dom.footerEditorInput, getSiteTextStyle("footerText"));
+        scheduleLivePreview();
+      }
+
+      dom.footerEditorInput.addEventListener("input", onFooterEditorChange);
+      dom.footerEditorInput.addEventListener("change", onFooterEditorChange);
+
+      dom.regenerateFooterBtn.addEventListener("click", () => {
+        state.siteConfig.footerEdited = false;
+        syncFooterEditorFromAuto(true);
+        scheduleLivePreview();
+        setStatus("Pie regenerado automáticamente. Puedes volver a editarlo.", "success");
+      });
+
+      dom.downloadBtn.addEventListener("click", async () => {
+        await generateAndRender({ download: true });
+      });
+
+      dom.previewFrame.addEventListener("load", () => {
+        installPreviewAutoResize();
+      });
+
+      renderAll();
+      setStatus("Selecciona layout, añade secciones y completa tu contenido.");
+    </script>
+  </body>
+</html>
