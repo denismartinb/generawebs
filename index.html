@@ -1558,6 +1558,14 @@
         flex-wrap: wrap;
       }
 
+      .publish-result-actions .btn:disabled,
+      .publish-result-actions .btn[aria-disabled="true"] {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+        box-shadow: none;
+      }
+
       .publish-modal-footer {
         padding: 0.8rem 1rem 1rem;
         border-top: 1px solid #dbe4f7;
@@ -2849,19 +2857,14 @@
             Nombre del proyecto
             <input id="vercelProjectInput" type="text" maxlength="100" placeholder="mi-landing" />
           </label>
-          <label for="publishEndpointInput">
-            Endpoint de publicación
-            <input id="publishEndpointInput" type="text" maxlength="260" placeholder="https://tu-editor.vercel.app/api/publish" />
-          </label>
-          <p class="note">Si abres el editor en local (file://), pega aquí la URL pública de tu endpoint.</p>
-          <p class="note">Se publicará con formato <strong>proyecto-nombre</strong>. Mismo nombre actualiza la misma URL; un nombre nuevo crea otra URL.</p>
+          <p class="note">Se publicará con formato <strong>proyecto-nombre</strong>. Para editar y sobrescribir una web existente, usa exactamente el mismo nombre de proyecto.</p>
           <p id="publishModalStatus" class="inline-image-modal-status" hidden></p>
-          <div id="publishResultCard" class="publish-result-card" hidden>
+          <div id="publishResultCard" class="publish-result-card">
             <p class="publish-result-label">URL pública</p>
-            <a id="publishResultLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+            <a id="publishResultLink" href="#" target="_blank" rel="noopener noreferrer">Pendiente de publicación</a>
             <div class="publish-result-actions">
-              <button id="publishCopyUrlBtn" class="btn secondary" type="button">Copiar URL</button>
-              <a id="publishOpenUrlBtn" class="btn neutral" href="#" target="_blank" rel="noopener noreferrer">Abrir</a>
+              <button id="publishCopyUrlBtn" class="btn secondary" type="button" disabled>Copiar URL</button>
+              <a id="publishOpenUrlBtn" class="btn neutral" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true" tabindex="-1">Abrir URL</a>
             </div>
           </div>
         </div>
@@ -3881,8 +3884,7 @@
         publishModalStatus: document.getElementById("publishModalStatus"),
         publishResultCard: document.getElementById("publishResultCard"),
         publishResultLink: document.getElementById("publishResultLink"),
-        vercelProjectInput: document.getElementById("vercelProjectInput"),
-        publishEndpointInput: document.getElementById("publishEndpointInput")
+        vercelProjectInput: document.getElementById("vercelProjectInput")
       };
 
       let previewObserver = null;
@@ -3899,7 +3901,6 @@
       let statusHideTimer = null;
       const openAiApiKeyStorageKey = "landing_openai_api_key";
       const vercelProjectNameStorageKey = "landing_vercel_project_name";
-      const publishEndpointStorageKey = "landing_publish_endpoint_url";
       const headerFooterModalSectionKey = "__header_footer__";
       let draggedSectionKey = "";
       let sectionDragDropped = false;
@@ -6673,25 +6674,30 @@
         const value = String(url || "").trim();
         if (!dom.publishResultCard || !dom.publishResultLink || !dom.publishOpenUrlBtn || !dom.publishCopyUrlBtn) return;
         if (!value) {
-          dom.publishResultCard.hidden = true;
-          dom.publishResultLink.textContent = "";
+          dom.publishResultCard.hidden = false;
+          dom.publishResultLink.textContent = "Pendiente de publicación";
           dom.publishResultLink.href = "#";
+          dom.publishResultLink.removeAttribute("target");
           dom.publishOpenUrlBtn.href = "#";
-          dom.publishCopyUrlBtn.hidden = true;
+          dom.publishOpenUrlBtn.setAttribute("aria-disabled", "true");
+          dom.publishOpenUrlBtn.setAttribute("tabindex", "-1");
+          dom.publishCopyUrlBtn.disabled = true;
           return;
         }
         dom.publishResultCard.hidden = false;
         dom.publishResultLink.textContent = value;
         dom.publishResultLink.href = value;
+        dom.publishResultLink.setAttribute("target", "_blank");
         dom.publishOpenUrlBtn.href = value;
-        dom.publishCopyUrlBtn.hidden = false;
+        dom.publishOpenUrlBtn.removeAttribute("aria-disabled");
+        dom.publishOpenUrlBtn.removeAttribute("tabindex");
+        dom.publishCopyUrlBtn.disabled = false;
       }
 
       function setPublishLoadingState(isLoading) {
         publishInFlight = Boolean(isLoading);
         const disableInputs = publishInFlight;
         if (dom.vercelProjectInput) dom.vercelProjectInput.disabled = disableInputs;
-        if (dom.publishEndpointInput) dom.publishEndpointInput.disabled = disableInputs;
         if (dom.publishCancelBtn) dom.publishCancelBtn.disabled = disableInputs;
         if (dom.publishModalCloseBtn) dom.publishModalCloseBtn.disabled = disableInputs;
         if (dom.publishSubmitBtn) {
@@ -6705,9 +6711,6 @@
         if (dom.vercelProjectInput) {
           const storedProject = getStoredValue(vercelProjectNameStorageKey);
           dom.vercelProjectInput.value = stripProjectPrefix(storedProject) || suggestedVercelProjectInput();
-        }
-        if (dom.publishEndpointInput) {
-          dom.publishEndpointInput.value = suggestedPublishApiUrl();
         }
         setPublishModalStatus("");
         setPublishResultUrl("");
@@ -6732,37 +6735,10 @@
         }
       }
 
-      function normalizePublishApiUrl(value) {
-        const raw = String(value || "").trim();
-        if (!raw) return "";
-        if (/^https?:\/\//i.test(raw)) return raw;
-        if (raw.startsWith("/")) return raw;
-        if (/^api\//i.test(raw)) return `/${raw}`;
-        if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(raw)) return `https://${raw}`;
-        return raw;
-      }
-
-      function suggestedPublishApiUrl() {
-        const explicit = normalizePublishApiUrl(window.__PUBLISH_ENDPOINT__);
-        if (explicit) return explicit;
-        const stored = normalizePublishApiUrl(getStoredValue(publishEndpointStorageKey));
-        if (stored) return stored;
-        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
-          return `${window.location.origin}/api/publish`;
-        }
-        return "";
-      }
-
       function getPublishApiUrl() {
-        const inputUrl = normalizePublishApiUrl(dom.publishEndpointInput ? dom.publishEndpointInput.value : "");
-        if (inputUrl) {
-          setStoredValue(publishEndpointStorageKey, inputUrl);
-          if (dom.publishEndpointInput) dom.publishEndpointInput.value = inputUrl;
-          return inputUrl;
-        }
-        const fallback = suggestedPublishApiUrl();
-        if (dom.publishEndpointInput && fallback) dom.publishEndpointInput.value = fallback;
-        return fallback;
+        const configured = String(window.__PUBLISH_ENDPOINT__ || "").trim();
+        if (configured) return configured;
+        return "https://generawebs.denismartinb.com/api/publish";
       }
 
       function normalizePublishFetchError(error, apiUrl) {
@@ -10226,6 +10202,14 @@
             setStatus("URL pública copiada al portapapeles.", "success");
           } catch (error) {
             setStatus("No se pudo copiar la URL publicada.", "error");
+          }
+        });
+      }
+
+      if (dom.publishOpenUrlBtn) {
+        dom.publishOpenUrlBtn.addEventListener("click", (event) => {
+          if (dom.publishOpenUrlBtn.getAttribute("aria-disabled") === "true") {
+            event.preventDefault();
           }
         });
       }
