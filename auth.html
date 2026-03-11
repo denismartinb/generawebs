@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acceso · Generador de webs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --surface: rgba(255, 255, 255, 0.92);
+        --text: #202124;
+        --muted: #5f6368;
+        --border: #dadce0;
+        --primary: #1a73e8;
+        --primary-dark: #0f5bc4;
+        --success-bg: #edf7ed;
+        --success-text: #1e6d3b;
+        --error-bg: #fce8e6;
+        --error-text: #b3261e;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: "Manrope", sans-serif;
+        background:
+          radial-gradient(circle at 12% 16%, rgba(26, 115, 232, 0.12), transparent 30%),
+          radial-gradient(circle at 84% 12%, rgba(15, 91, 196, 0.08), transparent 26%),
+          linear-gradient(180deg, #ffffff 0%, #f5f7fb 100%);
+      }
+
+      .shell {
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
+        gap: 2rem;
+        padding: 2rem 0;
+      }
+
+      .brand-side {
+        padding: 1rem 0;
+      }
+
+      .brand-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(32, 33, 36, 0.08);
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .brand-side h1 {
+        margin: 1rem 0 0;
+        font-family: "Outfit", sans-serif;
+        font-size: clamp(2.4rem, 5vw, 4.6rem);
+        line-height: 0.94;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-side p {
+        max-width: 44rem;
+        line-height: 1.7;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .points {
+        margin: 1.6rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.85rem;
+      }
+
+      .points li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text);
+      }
+
+      .points li::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 6px rgba(26, 115, 232, 0.12);
+      }
+
+      .auth-card {
+        background: var(--surface);
+        border: 1px solid rgba(218, 220, 224, 0.84);
+        border-radius: 28px;
+        box-shadow: 0 24px 60px rgba(60, 64, 67, 0.12);
+        backdrop-filter: blur(18px);
+        padding: 2rem;
+      }
+
+      .auth-card h2 {
+        margin: 0;
+        font-family: "Outfit", sans-serif;
+        font-size: 2rem;
+        letter-spacing: -0.03em;
+      }
+
+      .auth-card p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .auth-tabs {
+        margin-top: 1.35rem;
+        display: inline-grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.35rem;
+        padding: 0.25rem;
+        border-radius: 999px;
+        background: #eef2f9;
+      }
+
+      .auth-tabs button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        min-height: 40px;
+        padding: 0 0.95rem;
+        border-radius: 999px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .auth-tabs button[data-active="true"] {
+        background: #fff;
+        color: var(--text);
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+      }
+
+      form {
+        margin-top: 1.4rem;
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      input {
+        width: 100%;
+        min-height: 50px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        padding: 0.85rem 1rem;
+        font: inherit;
+        color: var(--text);
+        background: #fff;
+      }
+
+      input:focus {
+        outline: 2px solid rgba(26, 115, 232, 0.18);
+        border-color: var(--primary);
+      }
+
+      .auth-primary,
+      .auth-secondary {
+        min-height: 50px;
+        border-radius: 14px;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .auth-primary {
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .auth-primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .auth-secondary {
+        background: transparent;
+        color: var(--primary);
+      }
+
+      .status {
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+      }
+
+      .status[data-type="success"] {
+        background: var(--success-bg);
+        color: var(--success-text);
+      }
+
+      .status[data-type="error"] {
+        background: var(--error-bg);
+        color: var(--error-text);
+      }
+
+      .auth-note {
+        margin-top: 1rem;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .top-links {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .top-links a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.86rem;
+      }
+
+      @media (max-width: 920px) {
+        .shell {
+          grid-template-columns: 1fr;
+          padding: 1.25rem 0 2rem;
+        }
+
+        .brand-side h1 {
+          font-size: 2.7rem;
+        }
+
+        .auth-tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          width: 100%;
+        }
+      }
+    </style>
+    <script src="js/auth-page.js" defer></script>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="brand-side">
+        <span class="brand-pill">Acceso simple · estilo Google · despliegue estatico</span>
+        <h1>Entra, crea y publica sitios sin friccion.</h1>
+        <p>
+          La autenticacion se apoya en Supabase Auth y la base de datos en PostgreSQL administrado. La capa frontend sigue
+          siendo estatica, por lo que puedes desplegarla en GitHub Pages sin montar un backend propio.
+        </p>
+        <ul class="points">
+          <li>Registro por email y password con sesiones persistentes.</li>
+          <li>Recuperacion de contrasena y actualizacion segura.</li>
+          <li>Estructura preparada para guardar proyectos y futuras webs por usuario.</li>
+        </ul>
+      </section>
+
+      <section class="auth-card" aria-labelledby="authTitle">
+        <div class="top-links">
+          <a href="index.html">Volver a la landing</a>
+          <a href="app.html">Ir al workspace</a>
+        </div>
+
+        <h2 id="authTitle">Tu cuenta</h2>
+        <p>Accede al generador o crea tu espacio para empezar a construir y publicar webs.</p>
+
+        <div class="auth-tabs" role="tablist" aria-label="Flujos de acceso">
+          <button type="button" data-auth-tab="login" data-active="true" aria-selected="true">Login</button>
+          <button type="button" data-auth-tab="register" data-active="false" aria-selected="false">Registro</button>
+          <button type="button" data-auth-tab="recovery" data-active="false" aria-selected="false">Recuperar</button>
+          <button type="button" data-auth-tab="update-password" data-active="false" aria-selected="false">Nueva clave</button>
+        </div>
+
+        <p id="authConfigNotice" class="status" hidden></p>
+        <p id="authSessionBadge" class="status" hidden></p>
+        <p id="authStatus" class="status" hidden></p>
+
+        <section data-auth-panel="login">
+          <form id="loginForm">
+            <label>Email
+              <input type="email" name="login_email" autocomplete="email" required />
+            </label>
+            <label>Contrasena
+              <input type="password" name="login_password" autocomplete="current-password" required />
+            </label>
+            <button class="auth-primary" type="submit">Entrar</button>
+          </form>
+        </section>
+
+        <section data-auth-panel="register" hidden>
+          <form id="registerForm">
+            <label>Nombre
+              <input type="text" name="register_name" autocomplete="name" required />
+            </label>
+            <label>Email
+              <input type="email" name="register_email" autocomplete="email" required />
+            </label>
+            <label>Contrasena
+              <input type="password" name="register_password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <button class="auth-primary" type="submit">Crear cuenta</button>
+          </form>
+        </section>
+
+        <section data-auth-panel="recovery" hidden>
+          <form id="recoveryForm">
+            <label>Email
+              <input type="email" name="recovery_email" autocomplete="email" required />
+            </label>
+            <button class="auth-primary" type="submit">Enviar enlace</button>
+          </form>
+        </section>
+
+        <section data-auth-panel="update-password" hidden>
+          <form id="updatePasswordForm">
+            <label>Nueva contrasena
+              <input type="password" name="update_password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <button class="auth-primary" type="submit">Actualizar contrasena</button>
+          </form>
+        </section>
+
+        <p class="auth-note">Si usas confirmacion por email en Supabase, la cuenta quedara activa cuando el usuario confirme el enlace.</p>
+      </section>
+    </div>
+  </body>
+</html>
