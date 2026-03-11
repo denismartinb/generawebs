@@ -53,11 +53,32 @@
         display: inline-flex;
         align-items: center;
         gap: 0.65rem;
-        padding: 0.45rem 0.55rem 0.45rem 0.85rem;
+        padding: 0.52rem 0.68rem 0.52rem 1rem;
         border: 1px solid rgba(36, 84, 255, 0.12);
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.78);
         box-shadow: 0 12px 24px rgba(20, 26, 44, 0.08);
+      }
+
+      .workspace-auth-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        min-width: 0;
+        padding: 0.08rem 0.4rem 0.08rem 0.08rem;
+        border-radius: 999px;
+        transition: background 160ms ease, transform 160ms ease;
+      }
+
+      .workspace-auth-link:hover {
+        background: rgba(36, 84, 255, 0.06);
+        transform: translateY(-1px);
+      }
+
+      .workspace-auth-link:focus-visible {
+        outline: 2px solid rgba(36, 84, 255, 0.24);
+        outline-offset: 2px;
       }
 
       .workspace-auth-copy {
@@ -76,7 +97,7 @@
 
       .workspace-auth-user {
         margin: 0;
-        max-width: 220px;
+        max-width: 280px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2147,8 +2168,7 @@
 
       @media (max-width: 760px) {
         .device-switch {
-          width: 100%;
-          justify-content: space-between;
+          display: none;
         }
 
         .top-actions .btn {
@@ -2611,10 +2631,12 @@
       </div>
       <div class="top-actions">
         <div class="workspace-auth" aria-label="Sesión de usuario">
-          <div class="workspace-auth-copy">
-            <p class="workspace-auth-label">Workspace</p>
-            <p id="workspaceUserEmail" class="workspace-auth-user">Verificando sesión...</p>
-          </div>
+          <a class="workspace-auth-link" href="profile.html" aria-label="Abrir perfil de usuario">
+            <div class="workspace-auth-copy">
+              <p class="workspace-auth-label">Workspace</p>
+              <p id="workspaceUserEmail" class="workspace-auth-user">Verificando sesión...</p>
+            </div>
+          </a>
           <button id="workspaceLogoutBtn" class="btn secondary" type="button">Salir</button>
         </div>
         <div class="device-switch" role="group" aria-label="Selector de dispositivo">
@@ -2622,7 +2644,7 @@
           <button id="viewTabletBtn" class="view-btn" type="button" aria-pressed="false">Tablet</button>
           <button id="viewMobileBtn" class="view-btn" type="button" aria-pressed="false">Mobile</button>
         </div>
-        <button id="inspectCodeBtn" class="btn neutral" type="button">Inspección de código</button>
+        <button id="inspectCodeBtn" class="btn neutral" type="button">Código</button>
         <button id="publishBtn" class="btn neutral" type="button">Publicar web</button>
         <button id="downloadBtn" class="btn primary" type="button">Descargar Web</button>
       </div>

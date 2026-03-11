@@ -5,6 +5,7 @@ Estructura actual:
 - `index.html`: landing publica de marketing.
 - `auth.html`: registro, login y recuperacion de contrasena.
 - `app.html`: generador de webs privado, protegido por login.
+- `profile.html`: pagina privada para editar los datos del usuario autenticado.
 - `js/supabase-config.js`: configuracion del proyecto Supabase.
 - `supabase/schema.sql`: tablas y politicas base para usuarios y proyectos.
 
@@ -31,6 +32,7 @@ Estructura actual:
 - Landing publica en `index.html`.
 - El usuario entra por `auth.html`.
 - Si hay sesion valida, `app.html` carga el generador.
+- Desde `app.html`, el chip de `Workspace` lleva a `profile.html`.
 - Si no hay sesion, `app.html` redirige a `auth.html`.
 
 ## Siguiente paso natural

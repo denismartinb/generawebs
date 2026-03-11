@@ -5,6 +5,15 @@ export { isSupabaseConfigured };
 
 let supabaseClient = null;
 
+function isMissingProfilesTableError(error) {
+  const message = String(error?.message || "");
+  return (
+    message.includes("Could not find the table 'public.profiles'") ||
+    message.includes("relation \"public.profiles\" does not exist") ||
+    message.includes("relation \"profiles\" does not exist")
+  );
+}
+
 export function ensureSupabase() {
   if (!isSupabaseConfigured()) {
     throw new Error("Configura `window.__SUPABASE_URL__` y `window.__SUPABASE_ANON_KEY__` antes de usar la autenticacion.");
@@ -80,6 +89,75 @@ export async function updatePassword(password) {
   const { data, error } = await supabase.auth.updateUser({ password });
   if (error) throw error;
   return data;
+}
+
+export async function getProfile(userId) {
+  const supabase = ensureSupabase();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, avatar_url, created_at, updated_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) {
+    if (isMissingProfilesTableError(error)) return null;
+    throw error;
+  }
+  return data;
+}
+
+export async function saveProfile({ userId, email, fullName, avatarUrl }) {
+  const supabase = ensureSupabase();
+  const cleanEmail = String(email || "").trim();
+  const cleanFullName = String(fullName || "").trim();
+  const cleanAvatarUrl = String(avatarUrl || "").trim();
+
+  const { data: currentUserData, error: currentUserError } = await supabase.auth.getUser();
+  if (currentUserError) throw currentUserError;
+  const currentUser = currentUserData.user;
+  if (!currentUser || currentUser.id !== userId) {
+    throw new Error("No se pudo validar la sesion del usuario.");
+  }
+
+  const updates = {
+    data: {
+      ...(currentUser.user_metadata || {}),
+      full_name: cleanFullName
+    }
+  };
+  if (cleanEmail && cleanEmail !== currentUser.email) {
+    updates.email = cleanEmail;
+  }
+
+  const { data: authData, error: authError } = await supabase.auth.updateUser(updates);
+  if (authError) throw authError;
+
+  let profileData = null;
+  const { data: updatedUserData, error: refreshedUserError } = await supabase.auth.getUser();
+  if (refreshedUserError) throw refreshedUserError;
+  const updatedUser = updatedUserData.user || authData.user || currentUser;
+
+  const { data: nextProfileData, error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      email: cleanEmail || updatedUser.email || "",
+      full_name: cleanFullName,
+      avatar_url: cleanAvatarUrl || null
+    })
+    .eq("id", userId)
+    .select("id, email, full_name, avatar_url, created_at, updated_at")
+    .single();
+
+  if (profileError) {
+    if (!isMissingProfilesTableError(profileError)) throw profileError;
+  } else {
+    profileData = nextProfileData;
+  }
+
+  return {
+    profile: profileData,
+    user: updatedUser,
+    emailChangeRequested: Boolean(updates.email)
+  };
 }
 
 export async function signOut() {
